@@ -43,7 +43,12 @@ export default function QuotationForm({ initialData, isEdit = false }: Quotation
     const { brand } = useBrandSettings();
     const [step, setStep] = useState(1);
     const [isSaving, setIsSaving] = useState(false);
+    const [uploadingField, setUploadingField] = useState<string | null>(null);
     const totalSteps = 6;
+
+    const CLOUDINARY_CLOUD = "dltxunwku";
+    const CLOUDINARY_PRESET = "quotation_upload";
+    const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`;
 
     const [formData, setFormData] = useState<Partial<Quotation>>({
         id: uuidv4(),
@@ -137,42 +142,67 @@ ${designation}`;
     };
 
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: string, isList = false, index?: number) => {
+    const uploadToCloudinary = async (file: File): Promise<string> => {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", CLOUDINARY_PRESET);
+        const res = await fetch(CLOUDINARY_URL, { method: "POST", body: fd });
+        if (!res.ok) throw new Error("Cloudinary upload failed");
+        const data = await res.json();
+        return data.secure_url as string;
+    };
+
+    const handleImageUpload = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+        field: string,
+        isList = false,
+        index?: number
+    ) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const b64 = reader.result as string;
-            if (index !== undefined) {
-                if (field === 'hotels') {
-                    const newHotels = [...(formData.hotels || [])];
-                    newHotels[index] = { ...newHotels[index], photos: [...(newHotels[index].photos || []), b64] };
-                    setFormData({ ...formData, hotels: newHotels });
-                } else if (field === 'lowLevelHotels') {
-                    const newHotels = [...(formData.lowLevelHotels || [])];
-                    newHotels[index] = { ...newHotels[index], photos: [...(newHotels[index].photos || []), b64] };
-                    setFormData({ ...formData, lowLevelHotels: newHotels });
-                } else if (field === 'highLevelHotels') {
-                    const newHotels = [...(formData.highLevelHotels || [])];
-                    newHotels[index] = { ...newHotels[index], photos: [...(newHotels[index].photos || []), b64] };
-                    setFormData({ ...formData, highLevelHotels: newHotels });
-                } else if (field === 'itinerary') {
-                    const newItin = [...(formData.itinerary || [])];
-                    newItin[index] = { ...newItin[index], photos: [...(newItin[index].photos || []), b64] };
-                    setFormData({ ...formData, itinerary: newItin });
-                } else if (field === 'customSections') {
-                    const newSections = [...(formData.customSections || [])];
-                    newSections[index] = { ...newSections[index], image: b64 };
-                    setFormData({ ...formData, customSections: newSections });
+        const fieldKey = index !== undefined ? `${field}_${index}` : field;
+        setUploadingField(fieldKey);
+        try {
+            const url = await uploadToCloudinary(file);
+            setFormData(prev => {
+                if (index !== undefined) {
+                    if (field === 'hotels') {
+                        const newHotels = [...(prev.hotels || [])];
+                        newHotels[index] = { ...newHotels[index], photos: [...(newHotels[index].photos || []), url] };
+                        return { ...prev, hotels: newHotels };
+                    } else if (field === 'lowLevelHotels') {
+                        const newHotels = [...(prev.lowLevelHotels || [])];
+                        newHotels[index] = { ...newHotels[index], photos: [...(newHotels[index].photos || []), url] };
+                        return { ...prev, lowLevelHotels: newHotels };
+                    } else if (field === 'highLevelHotels') {
+                        const newHotels = [...(prev.highLevelHotels || [])];
+                        newHotels[index] = { ...newHotels[index], photos: [...(newHotels[index].photos || []), url] };
+                        return { ...prev, highLevelHotels: newHotels };
+                    } else if (field === 'itinerary') {
+                        const newItin = [...(prev.itinerary || [])];
+                        newItin[index] = { ...newItin[index], photos: [...(newItin[index].photos || []), url] };
+                        return { ...prev, itinerary: newItin };
+                    } else if (field === 'customSections') {
+                        const newSections = [...(prev.customSections || [])];
+                        newSections[index] = { ...newSections[index], image: url };
+                        return { ...prev, customSections: newSections };
+                    }
+                } else if (field === 'experiencePhotos') {
+                    return { ...prev, experiencePhotos: [...(prev.experiencePhotos || []), url] };
+                } else {
+                    return { ...prev, [field]: url };
                 }
-            } else if (field === 'experiencePhotos') {
-                setFormData({ ...formData, experiencePhotos: [...(formData.experiencePhotos || []), b64] });
-            } else {
-                setFormData({ ...formData, [field]: b64 });
-            }
-        };
-        reader.readAsDataURL(file);
+                return prev;
+            });
+            toast.success("Image uploaded!");
+        } catch (err) {
+            console.error(err);
+            toast.error("Image upload failed. Please try again.");
+        } finally {
+            setUploadingField(null);
+            e.target.value = "";
+        }
     };
 
     const TABS = [
@@ -339,13 +369,18 @@ ${designation}`;
                                         <label className="group relative aspect-video rounded-[2rem] border-4 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden bg-gray-50">
                                             {formData.heroImage ? (
                                                 <img src={formData.heroImage} className="w-full h-full object-cover" />
+                                            ) : uploadingField === 'heroImage' ? (
+                                                <div className="text-primary flex flex-col items-center gap-3">
+                                                    <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                    <span className="text-[10px] font-semibold uppercase tracking-widest">Uploading...</span>
+                                                </div>
                                             ) : (
                                                 <div className="text-gray-400 group-hover:text-primary transition-colors flex flex-col items-center gap-3">
                                                     <ImageIcon size={32} />
                                                     <span className="text-[10px] font-semibold uppercase tracking-widest">Select Image</span>
                                                 </div>
                                             )}
-                                            <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, 'heroImage')} />
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'heroImage')} />
                                         </label>
                                     </div>
 
@@ -369,9 +404,13 @@ ${designation}`;
                                                 </div>
                                             ))}
                                             <label className="aspect-video rounded-xl border-4 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all bg-gray-50 flex-col gap-1">
-                                                <Plus size={20} className="text-gray-400" />
-                                                <span className="text-[8px] font-black uppercase text-gray-400">Add Photo</span>
-                                                <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, 'experiencePhotos')} />
+                                                {uploadingField === 'experiencePhotos' ? (
+                                                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                ) : (
+                                                    <Plus size={20} className="text-gray-400" />
+                                                )}
+                                                <span className="text-[8px] font-black uppercase text-gray-400">{uploadingField === 'experiencePhotos' ? 'Uploading...' : 'Add Photo'}</span>
+                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'experiencePhotos')} />
                                             </label>
                                         </div>
                                     </div>
@@ -384,19 +423,26 @@ ${designation}`;
                                             <label className="group relative w-16 h-16 rounded-full border-2 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden bg-gray-50 shrink-0">
                                                 {formData.expert?.photo ? (
                                                     <img src={formData.expert.photo} className="w-full h-full object-cover" />
+                                                ) : uploadingField === 'expert_photo' ? (
+                                                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                                                 ) : (
                                                     <div className="text-gray-400 group-hover:text-primary transition-colors flex flex-col items-center">
                                                         <Plus size={16} />
                                                     </div>
                                                 )}
-                                                <input type="file" className="hidden" onChange={(e) => {
+                                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                                                     const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const reader = new FileReader();
-                                                        reader.onloadend = () => {
-                                                            setFormData({ ...formData, expert: { ...formData.expert!, photo: reader.result as string } });
-                                                        };
-                                                        reader.readAsDataURL(file);
+                                                    if (!file) return;
+                                                    setUploadingField('expert_photo');
+                                                    try {
+                                                        const url = await uploadToCloudinary(file);
+                                                        setFormData(prev => ({ ...prev, expert: { ...prev.expert!, photo: url } }));
+                                                        toast.success("Photo uploaded!");
+                                                    } catch {
+                                                        toast.error("Photo upload failed.");
+                                                    } finally {
+                                                        setUploadingField(null);
+                                                        e.target.value = "";
                                                     }
                                                 }} />
                                             </label>
@@ -493,8 +539,12 @@ ${designation}`;
                                                                 </div>
                                                             ))}
                                                             <label className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
-                                                                <Plus size={16} />
-                                                                <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, 'lowLevelHotels', true, index)} />
+                                                                {uploadingField === `lowLevelHotels_${index}` ? (
+                                                                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                                ) : (
+                                                                    <Plus size={16} />
+                                                                )}
+                                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'lowLevelHotels', true, index)} />
                                                             </label>
                                                         </div>
                                                     </div>
@@ -555,8 +605,12 @@ ${designation}`;
                                                                 </div>
                                                             ))}
                                                             <label className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
-                                                                <Plus size={16} />
-                                                                <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, 'highLevelHotels', true, index)} />
+                                                                {uploadingField === `highLevelHotels_${index}` ? (
+                                                                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                                ) : (
+                                                                    <Plus size={16} />
+                                                                )}
+                                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'highLevelHotels', true, index)} />
                                                             </label>
                                                         </div>
                                                     </div>
@@ -675,9 +729,13 @@ ${designation}`;
                                                                 </button>
                                                             </div>
                                                         ))}
-                                                        <label className="aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all bg-white group/upload">
-                                                            <ImageIcon size={24} className="text-gray-300" />
-                                                            <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, 'itinerary', true, index)} />
+                                                        <label className="aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all bg-white group/upload flex-col gap-2">
+                                                            {uploadingField === `itinerary_${index}` ? (
+                                                                <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                            ) : (
+                                                                <ImageIcon size={24} className="text-gray-300" />
+                                                            )}
+                                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'itinerary', true, index)} />
                                                         </label>
                                                     </div>
                                                 </div>
