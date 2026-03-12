@@ -366,7 +366,7 @@ ${designation}`;
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
                                     <div className="flex flex-col gap-4">
                                         <Label>Destination Hero</Label>
-                                        <label className="group relative aspect-video rounded-[2rem] border-4 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden bg-gray-50">
+                                        <label htmlFor="heroImage" className="group relative aspect-video rounded-[2rem] border-4 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden bg-gray-50">
                                             {formData.heroImage ? (
                                                 <img src={formData.heroImage} className="w-full h-full object-cover" />
                                             ) : uploadingField === 'heroImage' ? (
@@ -380,8 +380,8 @@ ${designation}`;
                                                     <span className="text-[10px] font-semibold uppercase tracking-widest">Select Image</span>
                                                 </div>
                                             )}
-                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'heroImage')} />
                                         </label>
+                                        <input id="heroImage" type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'heroImage')} />
                                     </div>
 
 
@@ -403,15 +403,15 @@ ${designation}`;
                                                     </button>
                                                 </div>
                                             ))}
-                                            <label className="aspect-video rounded-xl border-4 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all bg-gray-50 flex-col gap-1">
+                                            <label htmlFor="experiencePhotos" className="aspect-video rounded-xl border-4 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all bg-gray-50 flex-col gap-1">
                                                 {uploadingField === 'experiencePhotos' ? (
                                                     <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                                                 ) : (
                                                     <Plus size={20} className="text-gray-400" />
                                                 )}
                                                 <span className="text-[8px] font-black uppercase text-gray-400">{uploadingField === 'experiencePhotos' ? 'Uploading...' : 'Add Photo'}</span>
-                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'experiencePhotos')} />
                                             </label>
+                                            <input id="experiencePhotos" type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'experiencePhotos')} />
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-4 text-left">
@@ -420,7 +420,7 @@ ${designation}`;
                                             <p className="text-[10px] text-gray-400 font-medium">Profile information for the destination expert.</p>
                                         </div>
                                         <div className="flex items-center gap-4 mb-2">
-                                            <label className="group relative w-16 h-16 rounded-full border-2 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden bg-gray-50 shrink-0">
+                                            <label htmlFor="expertPhoto" className="group relative w-16 h-16 rounded-full border-2 border-dashed border-gray-100 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden bg-gray-50 shrink-0">
                                                 {formData.expert?.photo ? (
                                                     <img src={formData.expert.photo} className="w-full h-full object-cover" />
                                                 ) : uploadingField === 'expert_photo' ? (
@@ -430,22 +430,22 @@ ${designation}`;
                                                         <Plus size={16} />
                                                     </div>
                                                 )}
-                                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (!file) return;
-                                                    setUploadingField('expert_photo');
-                                                    try {
-                                                        const url = await uploadToCloudinary(file);
-                                                        setFormData(prev => ({ ...prev, expert: { ...prev.expert!, photo: url } }));
-                                                        toast.success("Photo uploaded!");
-                                                    } catch {
-                                                        toast.error("Photo upload failed.");
-                                                    } finally {
-                                                        setUploadingField(null);
-                                                        e.target.value = "";
-                                                    }
-                                                }} />
                                             </label>
+                                            <input id="expertPhoto" type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                setUploadingField('expert_photo');
+                                                try {
+                                                    const url = await uploadToCloudinary(file);
+                                                    setFormData(prev => ({ ...prev, expert: { ...prev.expert!, photo: url } }));
+                                                    toast.success("Photo uploaded!");
+                                                } catch {
+                                                    toast.error("Photo upload failed.");
+                                                } finally {
+                                                    setUploadingField(null);
+                                                    e.target.value = "";
+                                                }
+                                            }} />
                                             <div className="flex-1 space-y-2">
                                                 <Input
                                                     placeholder="Expert Name"
@@ -538,14 +538,14 @@ ${designation}`;
                                                                     <img src={p} className="w-full h-full object-cover" />
                                                                 </div>
                                                             ))}
-                                                            <label className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
+                                                            <label htmlFor={`lowLevelHotel_${index}`} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
                                                                 {uploadingField === `lowLevelHotels_${index}` ? (
                                                                     <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                                                                 ) : (
                                                                     <Plus size={16} />
                                                                 )}
-                                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'lowLevelHotels', true, index)} />
                                                             </label>
+                                                            <input id={`lowLevelHotel_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'lowLevelHotels', true, index)} />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -604,14 +604,14 @@ ${designation}`;
                                                                     <img src={p} className="w-full h-full object-cover" />
                                                                 </div>
                                                             ))}
-                                                            <label className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
+                                                            <label htmlFor={`highLevelHotel_${index}`} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
                                                                 {uploadingField === `highLevelHotels_${index}` ? (
                                                                     <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                                                                 ) : (
                                                                     <Plus size={16} />
                                                                 )}
-                                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'highLevelHotels', true, index)} />
                                                             </label>
+                                                            <input id={`highLevelHotel_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'highLevelHotels', true, index)} />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -729,14 +729,14 @@ ${designation}`;
                                                                 </button>
                                                             </div>
                                                         ))}
-                                                        <label className="aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all bg-white group/upload flex-col gap-2">
+                                                        <label htmlFor={`itinerary_photo_${index}`} className="aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all bg-white group/upload flex-col gap-2">
                                                             {uploadingField === `itinerary_${index}` ? (
                                                                 <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                                                             ) : (
                                                                 <ImageIcon size={24} className="text-gray-300" />
                                                             )}
-                                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'itinerary', true, index)} />
                                                         </label>
+                                                        <input id={`itinerary_photo_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'itinerary', true, index)} />
                                                     </div>
                                                 </div>
                                             </div>
