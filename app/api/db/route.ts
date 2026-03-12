@@ -47,20 +47,24 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     } catch (error: any) {
-        console.error('Database API error details:', {
-            message: error.message,
-            code: error.code,
+        console.error('DATABASE API ERROR:', {
+            action: requestData?.action,
+            id: requestData?.id,
+            error: error.message,
+            stack: error.stack,
             detail: error.detail,
-            constraint: error.constraint
         });
 
         if (error.constraint === 'quotations_slug_key') {
             return NextResponse.json({
-                error: `The slug '${requestData.slug}' is already taken by another quotation. Please use a unique slug.`,
+                error: `The slug '${requestData.slug}' is already taken. Please try again.`,
                 code: 'DUPLICATE_SLUG'
             }, { status: 400 });
         }
 
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ 
+            error: 'Database operation failed', 
+            message: error.message 
+        }, { status: 500 });
     }
 }

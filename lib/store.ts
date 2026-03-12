@@ -49,8 +49,8 @@ export const getQuotationById = async (id: string): Promise<Quotation | undefine
 };
 
 export const generateSlug = (destination: string, id: string) => {
-    const cleanDest = destination.toLowerCase().replace(/[^a-z0-9]/g, "-");
-    return `${cleanDest}-luxury-${id.substring(0, 5)}`;
+    const cleanDest = destination.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    return `${cleanDest || "trip"}-luxury-${id.substring(0, 5)}`;
 };
 
 export const getBrandSettings = async (): Promise<BrandSettings | null> => {

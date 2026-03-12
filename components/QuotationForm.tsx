@@ -122,7 +122,7 @@ ${designation}`;
         try {
             const finalData: Quotation = {
                 ...formData as Quotation,
-                slug: formData.slug || generateSlug(formData.destination || "trip", formData.clientName || "quote"),
+                slug: formData.slug || generateSlug(formData.destination || "trip", formData.id || uuidv4()),
                 updatedAt: new Date().toISOString()
             };
             await saveQuotation(finalData);
@@ -214,8 +214,19 @@ ${designation}`;
                                 <WhatsAppIcon size={18} className="mr-2" /> Share via WhatsApp
                             </Button>
                         )}
-                        <Button onClick={handleSave} className="rounded-2xl shadow-xl shadow-primary/30">
-                            <Save size={18} className="mr-2" /> {isEdit ? "Update Proposal" : "Save Proposal"}
+                        <Button 
+                            onClick={handleSave} 
+                            disabled={isSaving}
+                            className="rounded-2xl shadow-xl shadow-primary/30 min-w-[140px]"
+                        >
+                            {isSaving ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Saving...
+                                </div>
+                            ) : (
+                                <><Save size={18} className="mr-2" /> {isEdit ? "Update Proposal" : "Save Proposal"}</>
+                            )}
                         </Button>
                     </div>
                 </div>
