@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { cookies } from 'next/headers';
 
 /** Ensure a value is safe to store in Neon JSONB (no File objects / non-serialisable values). */
 function sanitizePayload(data: any): any {
@@ -58,9 +59,21 @@ export async function POST(request: Request) {
     const sql = neon(process.env.DATABASE_URL);
     let requestData: any = {};
 
+    // Get auth status from cookie
+    const cookieStore = await cookies();
+    const adminSession = cookieStore.get("admin_session")?.value;
+    const isAuthenticated = adminSession === "authenticated";
+
     try {
         requestData = await request.json();
         const { action, id, slug, data } = requestData;
+
+        // --- AUTH PROTECTED ACTIONS ---
+        if (['set', 'getAll', 'delete'].includes(action)) {
+            if (!isAuthenticated) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+        }
 
         if (action === 'set') {
             // Scrub image fields, then sanitize to pure JSON before handing to Neon
@@ -100,6 +113,11 @@ export async function POST(request: Request) {
         if (action === 'getAll') {
             const result = await sql`SELECT data FROM quotations ORDER BY updated_at DESC`;
             return NextResponse.json(result.map((r: any) => r.data));
+        }
+
+        if (action === 'getBySlug') {
+            const result = await sql`SELECT data FROM quotations WHERE slug = ${slug} LIMIT 1`;
+            return NextResponse.json(result[0]?.data || null);
         }
 
         if (action === 'delete') {

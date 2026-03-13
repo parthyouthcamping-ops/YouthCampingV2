@@ -40,8 +40,7 @@ export const deleteQuotation = async (id: string) => {
 };
 
 export const getQuotationBySlug = async (slug: string): Promise<Quotation | undefined> => {
-    const all = await getQuotations();
-    return all.find((q) => q.slug === slug);
+    return await db.getBySlug(slug);
 };
 
 export const getQuotationById = async (id: string): Promise<Quotation | undefined> => {

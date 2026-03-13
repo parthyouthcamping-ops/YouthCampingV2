@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutDashboard, FileText, Palette, Hotel, Calendar, UserCheck } from "lucide-react";
+import { Plus, LayoutDashboard, FileText, Palette, Hotel, Calendar, UserCheck, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +14,19 @@ import { useBrandSettings } from "@/hooks/useBrandSettings";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [activeTab, setActiveTab] = useState("all");
     const { brand } = useBrandSettings();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        try {
+            const res = await fetch("/api/auth/logout", { method: "POST" });
+            if (res.ok) {
+                toast.success("Logged out successfully");
+                router.push("/login");
+            }
+        } catch (error) {
+            toast.error("Logout failed");
+        }
+    };
 
     const sidebarLinks = [
         { name: "All Quotes", icon: LayoutDashboard, id: "all", href: "/admin" },
@@ -55,7 +70,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     ))}
                 </nav>
 
-                <div className="mt-auto">
+                <div className="mt-auto flex flex-col gap-4">
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all transform hover:translate-x-1 w-full text-left"
+                    >
+                        <LogOut size={20} />
+                        Logout
+                    </button>
                     <GlassCard variant="orange" className="p-6 rounded-3xl">
                         <h3 className="font-bold text-primary text-sm mb-2">Need Help?</h3>
                         <p className="text-[10px] text-primary/60 font-medium leading-relaxed">

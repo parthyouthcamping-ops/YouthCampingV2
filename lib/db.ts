@@ -100,6 +100,10 @@ export class YouthDB {
         return await this.callApi('getAll');
     }
 
+    async getBySlug(slug: string): Promise<any> {
+        return await this.callApi('getBySlug', { slug });
+    }
+
     async delete(id: string): Promise<void> {
         await this.callApi('delete', { id });
     }
