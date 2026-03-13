@@ -26,8 +26,16 @@ import {
     FileText,
     Layers,
     Edit,
-    MessageCircle as WhatsAppIcon
+    MessageCircle as WhatsAppIcon,
+    FileDown
 } from "lucide-react";
+import dynamic from 'next/dynamic';
+import { QuotePDF } from "@/components/quote/QuotePDF";
+
+const PDFDownloadLink = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink), {
+    ssr: false,
+    loading: () => <p className="text-[10px] font-black uppercase text-gray-400 animate-pulse">Initializing PDF...</p>
+});
 import { useBrandSettings } from "@/hooks/useBrandSettings";
 import { Quotation, Hotel, DayItinerary, CustomSection } from "@/lib/types";
 import { saveQuotation, generateSlug, getClients, addNotification } from "@/lib/store";
@@ -340,6 +348,34 @@ ${designation}`;
                             >
                                 <WhatsAppIcon size={18} className="mr-2" /> Share via WhatsApp
                             </Button>
+                        )}
+                        {isEdit && (
+                            <Button
+                                variant="outline"
+                                onClick={() => window.open(`/quote/${formData.slug}`, '_blank')}
+                                className="rounded-2xl border-2 border-primary/10 text-primary hover:bg-primary/5"
+                            >
+                                <Eye size={18} className="mr-2" /> Preview Proposal
+                            </Button>
+                        )}
+                        {isEdit && (
+                            <div className="no-print">
+                                <PDFDownloadLink 
+                                    document={<QuotePDF q={formData as Quotation} selectedTier="luxury" />} 
+                                    fileName={`YouthCamping_Quote_${formData.destination?.replace(/\s/g, '_') || 'Trip'}.pdf`}
+                                >
+                                    {({ loading }) => (
+                                        <Button
+                                            variant="outline"
+                                            disabled={loading}
+                                            className="rounded-2xl border-2 border-primary/10 text-primary hover:bg-primary/5 h-10 px-4"
+                                        >
+                                            <FileDown size={18} className="mr-2" />
+                                            {loading ? 'Initializing PDF...' : 'Export PDF'}
+                                        </Button>
+                                    )}
+                                </PDFDownloadLink>
+                            </div>
                         )}
                         <Button 
                             onClick={handleSave} 

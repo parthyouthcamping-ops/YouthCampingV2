@@ -14,6 +14,7 @@ const config: Config = {
                 "primary-deep": "rgb(var(--primary-deep))",
             },
             fontFamily: {
+                sans: ["var(--font-montserrat)", "sans-serif"],
                 montserrat: ["var(--font-montserrat)"],
             },
             backgroundImage: {

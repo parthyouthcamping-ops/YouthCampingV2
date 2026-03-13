@@ -97,24 +97,6 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                         </div>
                     </motion.div>
                 </div>
-
-                {/* Scroll Down Indicator */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1, duration: 1 }}
-                    className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4 cursor-pointer no-print"
-                    onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-                >
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Discover More</span>
-                    <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center p-1">
-                        <motion.div
-                            animate={{ y: [0, 16, 0] }}
-                            transition={{ repeat: Infinity, duration: 2 }}
-                            className="w-1.5 h-1.5 bg-primary rounded-full"
-                        />
-                    </div>
-                </motion.div>
             </section>
 
             {/* Traveler & Date Info Section */}
@@ -194,31 +176,6 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                 </div>
             </section>
 
-            {/* Trust Signal: How It Works */}
-            <section className="py-32 bg-gray-50/50">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-24">
-                        <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs mb-4">The YouthCamping Method</h2>
-                        <h3 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight">Our Precision Curation</h3>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-12">
-                        {[
-                            { icon: Compass, title: "1. Consultation", desc: "We understood your goals for this trip to ensure every highlight is meaningful." },
-                            { icon: Map, title: "2. Bespoke Curation", desc: "Our team analyzed dozens of routes to select the most picturesque and seamless path." },
-                            { icon: CheckCircle2, title: "3. Elite Execution", desc: "Once booked, our ground partners ensure your itinerary is executed with zero friction." }
-                        ].map((step, i) => (
-                            <div key={i} className="bg-white p-12 rounded-[3.5rem] border border-gray-100 shadow-xl flex flex-col items-center text-center">
-                                <div className="bg-primary/5 w-20 h-20 rounded-3xl flex items-center justify-center text-primary mb-8">
-                                    <step.icon size={36} />
-                                </div>
-                                <h4 className="text-2xl font-black text-gray-900 mb-4">{step.title}</h4>
-                                <p className="text-gray-500 font-medium leading-relaxed italic">{step.desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
             {/* Itinerary */}
             <section className="py-40">
@@ -429,14 +386,6 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                 </div>
             </section>
 
-            {/* Final Trust CTA */}
-            <section className="py-20 bg-gray-50/50 text-center border-t border-gray-100">
-                <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em] mb-4">YouthCamping Private Access</p>
-                <div className="flex items-center justify-center gap-4 text-gray-400">
-                    <ShieldCheck size={16} />
-                    <span className="font-bold text-[10px] uppercase tracking-widest">End-to-End Secure Travel Curation</span>
-                </div>
-            </section>
         </div>
     );
 }

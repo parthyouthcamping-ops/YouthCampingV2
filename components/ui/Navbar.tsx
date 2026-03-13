@@ -23,11 +23,7 @@ export function Navbar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const navLinks = [
-        { name: "Destinations", href: "/#destinations" },
-        { name: "How It Works", href: "/#how-it-works" },
-        { name: "Testimonials", href: "/#testimonials" },
-    ];
+    const navLinks: { name: string; href: string }[] = [];
 
     return (
         <nav
@@ -55,11 +51,6 @@ export function Navbar() {
                             {link.name}
                         </Link>
                     ))}
-                    <Link href="/#quote-lookup">
-                        <Button className="bg-primary hover:bg-primary-dark text-white px-8 py-6 rounded-full font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20">
-                            View My Quote
-                        </Button>
-                    </Link>
                 </div>
 
                 {/* Mobile Toggle */}
@@ -90,11 +81,6 @@ export function Navbar() {
                                 {link.name}
                             </Link>
                         ))}
-                        <Link href="/#quote-lookup" onClick={() => setIsMobileMenuOpen(false)}>
-                            <Button className="w-full bg-primary hover:bg-primary-dark text-white py-8 rounded-2xl font-black uppercase tracking-widest">
-                                View My Quote
-                            </Button>
-                        </Link>
                     </motion.div>
                 )}
             </AnimatePresence>
