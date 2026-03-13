@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/Input";
@@ -725,104 +726,131 @@ ${designation}`;
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-16">
+                                <Reorder.Group
+                                    axis="y"
+                                    values={formData.itinerary || []}
+                                    onReorder={(newOrder) => setFormData({ ...formData, itinerary: newOrder.map((d, i) => ({ ...d, day: i + 1 })) })}
+                                    className="flex flex-col gap-16"
+                                >
                                     {formData.itinerary?.map((item, index) => (
-                                        <div key={item.id} className="relative group flex gap-10">
+                                        <Reorder.Item
+                                            key={item.id}
+                                            value={item}
+                                            className="relative group flex gap-10"
+                                        >
                                             <div className="flex flex-col items-center gap-4 shrink-0">
-                                                <div className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center text-xl font-black italic shadow-lg shadow-primary/30">
+                                                <div className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center text-xl font-black italic shadow-lg shadow-primary/30 cursor-grab active:cursor-grabbing">
                                                     {item.day}
                                                 </div>
-                                                <div className="w-1 flex-1 bg-gray-50 rounded-full" />
+                                                <div className="w-1 flex-1 bg-gray-100 rounded-full" />
                                             </div>
 
-                                            <div className="flex-1 space-y-8 bg-gray-50/50 p-10 rounded-[2.5rem] relative">
-                                                <div className="absolute top-6 right-6">
-                                                    <Button variant="ghost" onClick={() => {
+                                            <div className="flex-1 space-y-8 bg-gray-50/50 p-10 rounded-[2.5rem] relative border border-transparent hover:border-primary/10 transition-colors shadow-sm">
+                                                <div className="absolute top-6 right-6 flex gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const newDay = { ...item, id: uuidv4(), day: (formData.itinerary?.length || 0) + 1 };
+                                                            setFormData({ ...formData, itinerary: [...(formData.itinerary || []), newDay] });
+                                                        }}
+                                                        className="text-primary hover:bg-primary/5 rounded-xl"
+                                                    >
+                                                        <Plus size={18} />
+                                                    </Button>
+                                                    <Button variant="ghost" size="sm" onClick={() => {
                                                         const newItin = [...(formData.itinerary || [])];
                                                         newItin.splice(index, 1);
                                                         const indexed = newItin.map((d, i) => ({ ...d, day: i + 1 }));
                                                         setFormData({ ...formData, itinerary: indexed });
-                                                    }} className="text-red-500"><Trash2 size={18} /></Button>
+                                                    }} className="text-red-500 hover:bg-red-50 rounded-xl"><Trash2 size={18} /></Button>
                                                 </div>
 
-                                                    <div className="space-y-4">
-                                                        <Label htmlFor={`itinerary_title_${index}`} className="font-semibold">Day {item.day} Title</Label>
-                                                        <Input
-                                                            id={`itinerary_title_${index}`}
-                                                            name={`itinerary_title_${index}`}
-                                                            placeholder="Title"
-                                                            value={item.title}
-                                                            onChange={(e) => {
-                                                                const newItin = [...(formData.itinerary || [])];
-                                                                newItin[index].title = e.target.value;
-                                                                setFormData({ ...formData, itinerary: newItin });
-                                                            }}
-                                                            className="bg-white font-black"
-                                                        />
-                                                    </div>
+                                                <div className="space-y-4">
+                                                    <Label htmlFor={`itinerary_title_${index}`} className="font-semibold text-xs uppercase tracking-widest text-gray-400">Day {item.day} Title</Label>
+                                                    <Input
+                                                        id={`itinerary_title_${index}`}
+                                                        name={`itinerary_title_${index}`}
+                                                        placeholder="e.g. Arrival in Paradise & Sunset Cruise"
+                                                        value={item.title}
+                                                        onChange={(e) => {
+                                                            const newItin = [...(formData.itinerary || [])];
+                                                            newItin[index].title = e.target.value;
+                                                            setFormData({ ...formData, itinerary: newItin });
+                                                        }}
+                                                        className="bg-white font-black h-14 rounded-2xl border-none shadow-sm text-lg"
+                                                    />
+                                                </div>
 
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                     <div className="space-y-4">
-                                                        <Label htmlFor={`itinerary_activities_${index}`} className="font-semibold">Activities (One per line)</Label>
+                                                        <Label htmlFor={`itinerary_activities_${index}`} className="font-semibold text-xs uppercase tracking-widest text-gray-400">Key Highlights (One per line)</Label>
                                                         <Textarea
                                                             id={`itinerary_activities_${index}`}
                                                             name={`itinerary_activities_${index}`}
+                                                            placeholder="Luxury Pickup&#10;Private Chef Dinner&#10;Spa Session"
                                                             value={item.activities.join('\n')}
                                                             onChange={(e) => {
                                                                 const newItin = [...(formData.itinerary || [])];
                                                                 newItin[index].activities = e.target.value.split('\n');
                                                                 setFormData({ ...formData, itinerary: newItin });
                                                             }}
-                                                            className="bg-white font-semibold"
+                                                            className="bg-white font-semibold rounded-2xl border-none shadow-sm min-h-[140px]"
                                                         />
                                                     </div>
 
                                                     <div className="space-y-4">
-                                                        <Label htmlFor={`itinerary_description_${index}`} className="font-semibold">Day Description</Label>
+                                                        <Label htmlFor={`itinerary_description_${index}`} className="font-semibold text-xs uppercase tracking-widest text-gray-400">Experience Narrative</Label>
                                                         <Textarea
                                                             id={`itinerary_description_${index}`}
                                                             name={`itinerary_description_${index}`}
+                                                            placeholder="Describe the mood and flow of the day..."
                                                             value={item.description}
                                                             onChange={(e) => {
                                                                 const newItin = [...(formData.itinerary || [])];
                                                                 newItin[index].description = e.target.value;
                                                                 setFormData({ ...formData, itinerary: newItin });
                                                             }}
-                                                            className="bg-white min-h-[100px] font-semibold"
+                                                            className="bg-white min-h-[140px] font-semibold rounded-2xl border-none shadow-sm"
                                                         />
                                                     </div>
+                                                </div>
 
-                                                    <div className="space-y-4">
-                                                        <Label htmlFor={`itinerary_photo_${index}`} className="font-semibold">Daily Photos</Label>
-                                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                            {item.photos?.map((photo, i) => (
-                                                                <div key={i} className="aspect-video rounded-2xl overflow-hidden relative group">
-                                                                    <img src={photo} className="w-full h-full object-cover" />
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            const newItin = [...(formData.itinerary || [])];
-                                                                            newItin[index].photos.splice(i, 1);
-                                                                            setFormData({ ...formData, itinerary: newItin });
-                                                                        }}
-                                                                        className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                                                                    >
-                                                                        <Trash2 size={14} />
-                                                                    </button>
+                                                <div className="space-y-4">
+                                                    <Label className="font-semibold text-xs uppercase tracking-widest text-gray-400">Visuals (Photos)</Label>
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                        {item.photos?.map((photo, i) => (
+                                                            <div key={i} className="aspect-video rounded-2xl overflow-hidden relative group shadow-sm border-2 border-white">
+                                                                <Image src={photo} width={200} height={150} className="w-full h-full object-cover" alt={`Day ${item.day} Photo ${i+1}`} />
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const newItin = [...(formData.itinerary || [])];
+                                                                        newItin[index].photos.splice(i, 1);
+                                                                        setFormData({ ...formData, itinerary: newItin });
+                                                                    }}
+                                                                    className="absolute inset-x-0 bottom-0 py-2 bg-red-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-[10px] font-black uppercase tracking-widest"
+                                                                >
+                                                                    <Trash2 size={12} className="mr-2" /> Remove
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                        <label htmlFor={`itinerary_photo_${index}`} className="aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-primary/40 hover:bg-white transition-all bg-gray-50 group/upload flex-col gap-2">
+                                                            {uploadingField === `itinerary_${index}` ? (
+                                                                <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                            ) : (
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <ImageIcon size={20} className="text-gray-300 group-hover/upload:text-primary transition-colors" />
+                                                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Add Photo</span>
                                                                 </div>
-                                                            ))}
-                                                            <label htmlFor={`itinerary_photo_${index}`} className="aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all bg-white group/upload flex-col gap-2">
-                                                                {uploadingField === `itinerary_${index}` ? (
-                                                                    <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                                                                ) : (
-                                                                    <ImageIcon size={24} className="text-gray-300" />
-                                                                )}
-                                                            </label>
-                                                            <input id={`itinerary_photo_${index}`} name={`itinerary_photo_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'itinerary', true, index)} />
-                                                        </div>
+                                                            )}
+                                                        </label>
+                                                        <input id={`itinerary_photo_${index}`} name={`itinerary_photo_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'itinerary', true, index)} />
                                                     </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </Reorder.Item>
                                     ))}
-                                </div>
+                                </Reorder.Group>
                             </div>
                         )}
 

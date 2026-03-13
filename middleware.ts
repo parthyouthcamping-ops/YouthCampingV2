@@ -26,7 +26,6 @@ export async function middleware(request: NextRequest) {
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "strict-origin-when-cross-origin",
         "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-        "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
         "X-XSS-Protection": "1; mode=block",
     };
 

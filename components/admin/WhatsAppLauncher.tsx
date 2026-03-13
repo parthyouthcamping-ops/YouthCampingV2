@@ -54,6 +54,22 @@ Just checking if you had a chance to review the *${q.destination}* proposal:
 ${link}
 
 We currently have a few premium slots available for your dates. Would you like to lock them in?`
+    },
+    {
+        id: "booking",
+        name: "Booking Confirm",
+        content: (q: Quotation, link: string) => `Congratulations ${q.clientName}! 🎉
+
+Your luxury trip to *${q.destination}* is now officially confirmed. 
+
+You can access your final itinerary and booking vouchers anytime using your secure link:
+${link}
+
+Pack your bags, an extraordinary adventure awaits! 🥂
+
+Best,
+${q.expert.name}
+YouthCamping`
     }
 ];
 

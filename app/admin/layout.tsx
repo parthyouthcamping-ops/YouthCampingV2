@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+import Image from "next/image";
+
 import { useBrandSettings } from "@/hooks/useBrandSettings";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -49,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <aside className="w-80 border-r border-gray-100 bg-white p-8 flex flex-col gap-12 sticky top-0 h-screen">
                 <div className="flex flex-col gap-4">
                     {brand?.companyLogo ? (
-                        <img src={brand.companyLogo} className="h-10 w-auto object-contain self-start" alt="Logo" />
+                        <Image src={brand.companyLogo} width={120} height={40} className="h-10 w-auto object-contain self-start" alt="Logo" priority />
                     ) : (
                         <h1 className="text-3xl font-black text-primary tracking-tighter">
                             YouthCamping

@@ -9,6 +9,8 @@ import { ImageIcon, Save, Instagram, Globe, Phone, CheckCircle2, Type, Palette, 
 import { getBrandSettings, saveBrandSettings } from "@/lib/store";
 import { BrandSettings } from "@/lib/types";
 
+import Image from "next/image";
+
 export default function BrandingPage() {
     const [settings, setSettings] = useState<BrandSettings>({
         logoMode: "contain",
@@ -67,8 +69,10 @@ export default function BrandingPage() {
                     <Label className="text-sm font-black uppercase tracking-widest text-gray-400">Company Logo</Label>
                     <label className="group relative aspect-square rounded-[2.5rem] flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-all overflow-hidden bg-white shadow-2xl shadow-gray-200/50">
                         {settings.companyLogo ? (
-                            <img
+                            <Image
                                 src={settings.companyLogo}
+                                width={300}
+                                height={300}
                                 className={`w-full h-full p-4 transition-all ${settings.logoMode === 'fill' ? 'object-fill' :
                                     settings.logoMode === 'cover' ? 'object-cover' :
                                         'object-contain'

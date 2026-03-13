@@ -69,10 +69,19 @@ export async function POST(request: Request) {
         const { action, id, slug, data } = requestData;
 
         // --- AUTH PROTECTED ACTIONS ---
+        const isPublicGet = action === 'get' && id === 'global_brand';
+        const isPublicBySlug = action === 'getBySlug';
+
         if (['set', 'getAll', 'delete'].includes(action)) {
             if (!isAuthenticated) {
                 return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
             }
+        }
+
+        // 'get' for other IDs still needs auth if we want to protect individual quotes by ID
+        // but getBySlug is public.
+        if (action === 'get' && !isPublicGet && !isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         if (action === 'set') {

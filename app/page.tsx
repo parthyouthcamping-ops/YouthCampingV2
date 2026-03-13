@@ -137,7 +137,7 @@ export default function Home() {
             </section>
 
             {/* Stat Bar */}
-            <section className="bg-[#0a192f] py-16 border-y border-white/5">
+            <section id="destinations" className="bg-[#0a192f] py-16 border-y border-white/5">
                 <div className="container mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-12">
                     {[
                         { label: "Trips Planned", value: "500+" },
@@ -157,13 +157,55 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* Destination Grid */}
+            <section className="py-40 bg-white">
+                <div className="container mx-auto px-6">
+                    <div className="flex flex-col items-center text-center mb-24">
+                        <h2 className="text-primary font-black uppercase tracking-[0.5em] text-sm mb-6">Explore the Extraordinary</h2>
+                        <h3 className="text-4xl md:text-7xl font-[900] text-gray-900 tracking-tighter leading-none">
+                            CURATED DESTINATIONS
+                        </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                        {[
+                            { name: "Bali, Indonesia", price: "₹85,000", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=2076&auto=format&fit=crop" },
+                            { name: "Reykjavik, Iceland", price: "₹2,45,000", image: "https://images.unsplash.com/photo-1504109586057-7a2ae83d1338?q=80&w=2069&auto=format&fit=crop" },
+                            { name: "Maasai Mara, Kenya", price: "₹1,95,000", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2068&auto=format&fit=crop" },
+                            { name: "Amalfi Coast, Italy", price: "₹3,15,000", image: "https://images.unsplash.com/photo-1633321088355-d0f81134ca3b?q=80&w=2070&auto=format&fit=crop" },
+                            { name: "Kyoto, Japan", price: "₹2,10,000", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2070&auto=format&fit=crop" },
+                            { name: "Santorini, Greece", price: "₹2,75,000", image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=2012&auto=format&fit=crop" }
+                        ].map((dest, i) => (
+                            <motion.div
+                                key={i}
+                                whileHover={{ y: -10 }}
+                                className="group relative aspect-[4/5] overflow-hidden rounded-[3rem] shadow-2xl"
+                            >
+                                <Image
+                                    src={dest.image}
+                                    alt={dest.name}
+                                    fill
+                                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                <div className="absolute bottom-10 left-10 text-white">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-primary">Starting From</p>
+                                    <h4 className="text-3xl font-black mb-1">{dest.name}</h4>
+                                    <p className="text-lg font-bold text-white/80">{dest.price} / Person</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* Features Section - How It Works */}
             <section id="how-it-works" className="py-40 bg-gray-50/50">
                 <div className="container mx-auto px-6">
                     <div className="flex flex-col items-center text-center mb-24">
                         <h2 className="text-primary font-black uppercase tracking-[0.5em] text-sm mb-6">The Journey to Perfection</h2>
-                        <h3 className="text-4xl md:text-7xl font-[900] text-gray-900 tracking-tighter leading-none">
-                            HOW IT WORKS
+                        <h3 className="text-4xl md:text-7xl font-[900] text-gray-900 tracking-tighter leading-none uppercase">
+                            Your Path to Luxury
                         </h3>
                     </div>
 
@@ -214,27 +256,33 @@ export default function Home() {
                         </h3>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-3 gap-12">
                         {[
                             {
                                 name: "Arjun Mehta",
                                 trip: "Bali Private Charter",
+                                photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop",
                                 quote: "The most professional travel planning I've experienced. Every detail was perfect."
                             },
                             {
                                 name: "Sara Khan",
                                 trip: "Iceland Glacial Tour",
+                                photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop",
                                 quote: "Exclusive access to locations we couldn't find anywhere else. Simply outstanding."
                             },
                             {
                                 name: "Vivek Roy",
                                 trip: "African Safari Suite",
+                                photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070&auto=format&fit=crop",
                                 quote: "From first quote to last day, the service was ultra-bespoke and seamless."
                             }
                         ].map((t, i) => (
-                            <div key={i} className="bg-gray-50 p-12 rounded-[3.5rem] border border-gray-100 hover:bg-white hover:shadow-2xl transition-all duration-500">
-                                <div className="text-primary mb-8">
-                                    <Star size={24} fill="currentColor" />
+                            <div key={i} className="bg-gray-50 p-12 rounded-[3.5rem] border border-gray-100 hover:bg-white hover:shadow-2xl transition-all duration-500 flex flex-col items-center text-center">
+                                <div className="w-24 h-24 rounded-full overflow-hidden mb-8 border-4 border-white shadow-xl">
+                                    <Image src={t.photo} width={96} height={96} alt={t.name} className="object-cover" />
+                                </div>
+                                <div className="flex gap-1 text-primary mb-6">
+                                    {[1, 2, 3, 4, 5].map((s) => <Star key={s} fill="currentColor" size={16} />)}
                                 </div>
                                 <p className="text-xl font-bold text-gray-800 leading-relaxed mb-10 italic">"{t.quote}"</p>
                                 <div>
@@ -260,16 +308,16 @@ export default function Home() {
                         <div>
                             <h4 className="font-black uppercase tracking-[0.4em] text-xs text-primary mb-8">Resources</h4>
                             <div className="flex flex-col gap-4 font-bold text-gray-400">
-                                <Link href="#how-it-works" className="hover:text-white transition-colors">How It Works</Link>
-                                <Link href="#destinations" className="hover:text-white transition-colors">Destinations</Link>
-                                <Link href="#testimonials" className="hover:text-white transition-colors">Experiences</Link>
+                                <Link href="/#how-it-works" className="hover:text-white transition-colors">How It Works</Link>
+                                <Link href="/#destinations" className="hover:text-white transition-colors">Destinations</Link>
+                                <Link href="/#testimonials" className="hover:text-white transition-colors">Experiences</Link>
                             </div>
                         </div>
                         <div>
                             <h4 className="font-black uppercase tracking-[0.4em] text-xs text-primary mb-8">Access</h4>
                             <div className="flex flex-col gap-4 font-bold text-gray-400">
                                 <Link href="/login" className="hover:text-white transition-colors">Admin Login</Link>
-                                <Link href="#view-quote" className="hover:text-white transition-colors">View My Trip</Link>
+                                <Link href="/#quote-lookup" className="hover:text-white transition-colors">View My Trip</Link>
                             </div>
                         </div>
                     </div>

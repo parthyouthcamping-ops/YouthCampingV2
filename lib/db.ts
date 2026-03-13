@@ -1,3 +1,5 @@
+import { neon } from '@neondatabase/serverless';
+
 const isUrl = (v: unknown): v is string =>
     typeof v === 'string' && v.startsWith('https://');
 
@@ -8,11 +10,6 @@ function scrubHotels(hotels: any[]): any[] {
     }));
 }
 
-/**
- * Strip every image field down to Cloudinary URLs only.
- * Removes File objects, blob URLs, base64 data and undefined values before
- * the payload is serialised and sent to /api/db.
- */
 function sanitisePayload(data: any): any {
     if (!data || typeof data !== 'object') return data;
 
@@ -39,7 +36,6 @@ function sanitisePayload(data: any): any {
         }))
     };
 
-    // Final pass: JSON round-trip drops any non-serialisable values (File, Blob, undefined)
     return JSON.parse(JSON.stringify(clean, (_k, v) => {
         if (v instanceof File || v instanceof Blob) return null;
         if (typeof v === 'undefined') return null;
@@ -47,25 +43,73 @@ function sanitisePayload(data: any): any {
     }));
 }
 
-const MAX_PAYLOAD_BYTES = 3 * 1024 * 1024; // 3 MB hard limit (Vercel limit is 4.5 MB)
+const MAX_PAYLOAD_BYTES = 3 * 1024 * 1024;
 
 export class YouthDB {
     private async callApi(action: string, body: any = {}) {
-        // Sanitise the data field if present
+        const isServer = typeof window === 'undefined';
+        
+        if (isServer && process.env.DATABASE_URL) {
+            const sql = neon(process.env.DATABASE_URL);
+            const { id, slug, data } = body;
+
+            try {
+                if (action === 'set') {
+                    const clean = id === 'global_brand' ? data : sanitisePayload(data);
+                    const jsonString = JSON.stringify(clean);
+                    if (id === 'global_brand') {
+                        await sql`
+                            INSERT INTO brand_settings (id, data, updated_at)
+                            VALUES ('global_brand', ${jsonString}::jsonb, ${new Date().toISOString()})
+                            ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at
+                        `;
+                    } else {
+                        const createdAt = clean?.createdAt || new Date().toISOString();
+                        await sql`
+                            INSERT INTO quotations (id, slug, data, updated_at, created_at)
+                            VALUES (${id}, ${slug}, ${jsonString}::jsonb, ${new Date().toISOString()}, ${createdAt})
+                            ON CONFLICT (id) DO UPDATE SET slug = EXCLUDED.slug, data = EXCLUDED.data, updated_at = EXCLUDED.updated_at
+                        `;
+                    }
+                    return { success: true };
+                }
+
+                if (action === 'get') {
+                    const res = id === 'global_brand'
+                        ? await sql`SELECT data FROM brand_settings WHERE id = ${id}`
+                        : await sql`SELECT data FROM quotations WHERE id = ${id}`;
+                    return res[0]?.data || null;
+                }
+
+                if (action === 'getAll') {
+                    const res = await sql`SELECT data FROM quotations ORDER BY updated_at DESC`;
+                    return res.map((r: any) => r.data);
+                }
+
+                if (action === 'getBySlug') {
+                    const res = await sql`SELECT data FROM quotations WHERE slug = ${slug} LIMIT 1`;
+                    return res[0]?.data || null;
+                }
+
+                if (action === 'delete') {
+                    await sql`DELETE FROM quotations WHERE id = ${id}`;
+                    return { success: true };
+                }
+            } catch (error) {
+                console.error("[DB SERVER ERROR]", error);
+                throw error;
+            }
+        }
+
+        // CLIENT SIDE OR NO DATABASE_URL
         const sanitisedBody = body.data && body.id !== 'global_brand'
             ? { ...body, data: sanitisePayload(body.data) }
             : body;
 
         const payload = JSON.stringify({ action, ...sanitisedBody });
 
-        // Log payload size so you can see it in the browser console
-        console.log(`[DB] Payload size for action="${action}": ${(payload.length / 1024).toFixed(1)} KB`);
-
         if (payload.length > MAX_PAYLOAD_BYTES) {
-            throw new Error(
-                `Payload too large: ${(payload.length / 1024).toFixed(0)} KB. ` +
-                `Ensure all images are Cloudinary URLs (max ~3 MB total).`
-            );
+            throw new Error(`Payload too large: ${(payload.length / 1024).toFixed(0)} KB.`);
         }
 
         const response = await fetch('/api/db', {
@@ -73,6 +117,7 @@ export class YouthDB {
             headers: { 'Content-Type': 'application/json' },
             body: payload
         });
+        
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.error || 'API call failed');
@@ -84,11 +129,7 @@ export class YouthDB {
         if (value.id === 'global_brand') {
             await this.callApi('set', { id: 'global_brand', data: value });
         } else {
-            await this.callApi('set', {
-                id: value.id,
-                slug: value.slug,
-                data: value
-            });
+            await this.callApi('set', { id: value.id, slug: value.slug, data: value });
         }
     }
 

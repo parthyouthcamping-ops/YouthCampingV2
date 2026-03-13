@@ -8,6 +8,7 @@ import { Lock, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useBrandSettings } from "@/hooks/useBrandSettings";
 import Script from "next/script";
+import Image from "next/image";
 
 declare global {
     interface Window {
@@ -71,7 +72,7 @@ export default function LoginPage() {
             <GlassCard className="max-w-md w-full p-12 rounded-[3rem] shadow-3xl bg-white border-none relative z-10">
                 <div className="flex flex-col items-center gap-8 text-center mb-10">
                     {brand?.companyLogo ? (
-                        <img src={brand.companyLogo} className="h-16 w-auto object-contain" alt="Logo" />
+                        <Image src={brand.companyLogo} width={150} height={60} className="h-16 w-auto object-contain" alt="Logo" priority />
                     ) : (
                         <h1 className="text-4xl font-black text-primary tracking-tighter">
                             YouthCamping

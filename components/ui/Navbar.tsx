@@ -39,9 +39,7 @@ export function Navbar() {
         >
             <div className="container mx-auto px-6 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">
-                    <h1 className={`text-2xl font-black tracking-tighter transition-colors duration-300 ${
-                        isScrolled ? "text-white" : "text-white"
-                    }`}>
+                    <h1 className="text-2xl font-black tracking-tighter transition-colors duration-300 text-white">
                         YOUTHCAMPING
                     </h1>
                 </Link>
