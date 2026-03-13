@@ -30,6 +30,7 @@ export type CustomSection = {
 
 export type Quotation = {
     id: string;
+    clientId?: string;
     slug: string;
     clientName: string;
     destination: string;

@@ -1,4 +1,5 @@
 import { neon } from '@neondatabase/serverless';
+import { v4 as uuidv4 } from "uuid";
 
 const isUrl = (v: unknown): v is string =>
     typeof v === 'string' && v.startsWith('https://');
@@ -118,6 +119,75 @@ export class YouthDB {
                         return acc;
                     }, {});
                 }
+
+                if (action === 'getClients') {
+                    const res = await sql`SELECT * FROM clients ORDER BY created_at DESC`;
+                    return res;
+                }
+
+                if (action === 'setClient') {
+                    const jsonString = JSON.stringify(data);
+                    await sql`
+                        INSERT INTO clients (id, name, email, phone, status, notes, data, updated_at)
+                        VALUES (${id}, ${body.name}, ${body.email}, ${body.phone}, ${body.status}, ${body.notes}, ${jsonString}::jsonb, ${new Date().toISOString()})
+                        ON CONFLICT (id) DO UPDATE SET 
+                            name = EXCLUDED.name, 
+                            email = EXCLUDED.email, 
+                            phone = EXCLUDED.phone, 
+                            status = EXCLUDED.status, 
+                            notes = EXCLUDED.notes, 
+                            data = EXCLUDED.data, 
+                            updated_at = EXCLUDED.updated_at
+                    `;
+                    return { success: true };
+                }
+
+                if (action === 'deleteClient') {
+                    await sql`DELETE FROM clients WHERE id = ${id}`;
+                    return { success: true };
+                }
+
+                if (action === 'getNotifications') {
+                    const res = await sql`SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50`;
+                    return res;
+                }
+
+                if (action === 'addNotification') {
+                    await sql`
+                        INSERT INTO notifications (id, title, message, type, link)
+                        VALUES (${id || uuidv4()}, ${body.title}, ${body.message}, ${body.type || 'info'}, ${body.link})
+                    `;
+                    return { success: true };
+                }
+
+                if (action === 'markNotificationRead') {
+                    await sql`UPDATE notifications SET is_read = TRUE WHERE id = ${id}`;
+                    return { success: true };
+                }
+
+                if (action === 'getBookings') {
+                    const res = await sql`
+                        SELECT b.*, c.name as client_name, q.destination 
+                        FROM bookings b
+                        LEFT JOIN clients c ON b.client_id = c.id
+                        LEFT JOIN quotations q ON b.quotation_id = q.id
+                        ORDER BY b.created_at DESC
+                    `;
+                    return res;
+                }
+
+                if (action === 'setBooking') {
+                    const jsonString = JSON.stringify(data);
+                    await sql`
+                        INSERT INTO bookings (id, quotation_id, client_id, amount, status, data, updated_at)
+                        VALUES (${id}, ${body.quotationId}, ${body.clientId}, ${body.amount}, ${body.status}, ${jsonString}::jsonb, ${new Date().toISOString()})
+                        ON CONFLICT (id) DO UPDATE SET 
+                            status = EXCLUDED.status, 
+                            data = EXCLUDED.data, 
+                            updated_at = EXCLUDED.updated_at
+                    `;
+                    return { success: true };
+                }
             } catch (error) {
                 console.error("[DB SERVER ERROR]", error);
                 throw error;
@@ -182,6 +252,53 @@ export class YouthDB {
 
     async getAllLandingSections(): Promise<any> {
         return await this.callApi('getAllLandingSections');
+    }
+
+    async getClients(): Promise<any[]> {
+        return await this.callApi('getClients');
+    }
+
+    async setClient(client: any): Promise<void> {
+        await this.callApi('setClient', { 
+            id: client.id, 
+            name: client.name, 
+            email: client.email, 
+            phone: client.phone, 
+            status: client.status, 
+            notes: client.notes,
+            data: client.data || {} 
+        });
+    }
+
+    async deleteClient(id: string): Promise<void> {
+        await this.callApi('deleteClient', { id });
+    }
+
+    async getNotifications(): Promise<any[]> {
+        return await this.callApi('getNotifications');
+    }
+
+    async addNotification(data: { title: string, message: string, type?: string, link?: string }): Promise<void> {
+        await this.callApi('addNotification', data);
+    }
+
+    async markNotificationRead(id: string): Promise<void> {
+        await this.callApi('markNotificationRead', { id });
+    }
+
+    async getBookings(): Promise<any[]> {
+        return await this.callApi('getBookings');
+    }
+
+    async setBooking(booking: any): Promise<void> {
+        await this.callApi('setBooking', {
+            id: booking.id,
+            quotationId: booking.quotation_id,
+            clientId: booking.client_id,
+            amount: booking.amount,
+            status: booking.status,
+            data: booking.data || {}
+        });
     }
 }
 

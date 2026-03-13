@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { useBrandSettings } from "@/hooks/useBrandSettings";
 import { Quotation, Hotel, DayItinerary, CustomSection } from "@/lib/types";
-import { saveQuotation, generateSlug } from "@/lib/store";
+import { saveQuotation, generateSlug, getClients, addNotification } from "@/lib/store";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { toast } from "sonner";
 
@@ -45,6 +45,8 @@ export default function QuotationForm({ initialData, isEdit = false }: Quotation
     const [step, setStep] = useState(1);
     const [isSaving, setIsSaving] = useState(false);
     const [uploadingField, setUploadingField] = useState<string | null>(null);
+    const [clients, setClients] = useState<any[]>([]);
+    const [isLoadingClients, setIsLoadingClients] = useState(false);
     const activeUploads = useState(0); // [count, setCount]
     const totalSteps = 6;
 
@@ -55,6 +57,7 @@ export default function QuotationForm({ initialData, isEdit = false }: Quotation
     const [formData, setFormData] = useState<Partial<Quotation>>({
         id: uuidv4(),
         status: "Draft",
+        clientId: "",
         pax: 2,
         lowLevelPrice: 24999,
         highLevelPrice: 44999,
@@ -73,6 +76,21 @@ export default function QuotationForm({ initialData, isEdit = false }: Quotation
         expert: { name: "", whatsapp: "" },
         ...initialData
     });
+
+    useEffect(() => {
+        const fetchClients = async () => {
+            setIsLoadingClients(true);
+            try {
+                const data = await getClients();
+                setClients(data);
+            } catch (error) {
+                console.error("Error fetching clients:", error);
+            } finally {
+                setIsLoadingClients(false);
+            }
+        };
+        fetchClients();
+    }, []);
 
 
     useEffect(() => {
@@ -167,6 +185,19 @@ ${designation}`;
             };
             console.log("Saving payload:", finalData);
             await saveQuotation(finalData);
+            
+            // Phase 7: Automated Notification
+            try {
+                await addNotification({
+                    title: "New Quotation Generated",
+                    message: `A new luxury proposal for ${finalData.destination} has been created for ${finalData.clientName}.`,
+                    type: "success",
+                    link: `/quote/${finalData.slug}`
+                });
+            } catch (e) {
+                console.error("Failed to send notification:", e);
+            }
+
             toast.success("Proposal saved successfully!");
             router.push("/admin");
         } catch (error) {
@@ -338,7 +369,30 @@ ${designation}`;
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-3">
-                                        <Label htmlFor="clientName" className="font-semibold">Client Name</Label>
+                                        <Label htmlFor="clientId" className="font-semibold">Linked Client (Optional)</Label>
+                                        <select
+                                            id="clientId"
+                                            name="clientId"
+                                            className="w-full h-14 px-6 bg-white border border-gray-100 rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-primary/5 outline-none transition-all appearance-none"
+                                            value={formData.clientId || ""}
+                                            onChange={(e) => {
+                                                const selectedId = e.target.value;
+                                                const selectedClient = clients.find(c => c.id === selectedId);
+                                                setFormData({ 
+                                                    ...formData, 
+                                                    clientId: selectedId,
+                                                    clientName: selectedClient ? selectedClient.name : formData.clientName 
+                                                });
+                                            }}
+                                        >
+                                            <option value="">Select a Client...</option>
+                                            {clients.map(client => (
+                                                <option key={client.id} value={client.id}>{client.name} ({client.status})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Label htmlFor="clientName" className="font-semibold">Client Name Display</Label>
                                         <Input
                                             id="clientName"
                                             name="clientName"

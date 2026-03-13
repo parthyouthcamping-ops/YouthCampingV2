@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
+import { db } from '@/lib/db';
 
 /** Ensure a value is safe to store in Neon JSONB (no File objects / non-serialisable values). */
 function sanitizePayload(data: any): any {
@@ -156,6 +157,45 @@ export async function POST(request: Request) {
                 return acc;
             }, {});
             return NextResponse.json(mapped);
+        }
+
+        if (action === 'getClients') {
+            return NextResponse.json(await db.getClients());
+        }
+
+        if (action === 'setClient') {
+            await db.setClient(requestData);
+            return NextResponse.json({ success: true });
+        }
+
+        if (action === 'deleteClient') {
+            await db.deleteClient(id);
+            return NextResponse.json({ success: true });
+        }
+
+        if (action === 'getNotifications') {
+            const res = await sql`SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50`;
+            return NextResponse.json(res);
+        }
+
+        if (action === 'addNotification') {
+            const { title, message, type, link } = requestData;
+            await sql`INSERT INTO notifications (id, title, message, type, link) VALUES (${id || Date.now().toString()}, ${title}, ${message}, ${type}, ${link})`;
+            return NextResponse.json({ success: true });
+        }
+
+        if (action === 'markNotificationRead') {
+            await sql`UPDATE notifications SET is_read = TRUE WHERE id = ${id}`;
+            return NextResponse.json({ success: true });
+        }
+
+        if (action === 'getBookings') {
+            return NextResponse.json(await db.getBookings());
+        }
+
+        if (action === 'setBooking') {
+            await db.setBooking(requestData);
+            return NextResponse.json({ success: true });
         }
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

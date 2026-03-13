@@ -74,3 +74,35 @@ export const updateLandingSection = async (id: string, data: any) => {
         window.dispatchEvent(new Event("landingContentUpdated"));
     }
 };
+
+export const getClients = async (): Promise<any[]> => {
+    return await db.getClients();
+};
+
+export const saveClient = async (client: any) => {
+    await db.setClient(client);
+};
+
+export const deleteClient = async (id: string) => {
+    await db.deleteClient(id);
+};
+
+export const addNotification = async (notification: any) => {
+    await db.addNotification(notification);
+};
+
+export const getNotifications = async (): Promise<any[]> => {
+    return await db.getNotifications();
+};
+
+export const markNotificationRead = async (id: string) => {
+    await db.markNotificationRead(id);
+};
+
+export const getBookings = async (): Promise<any[]> => {
+    return await db.getBookings();
+};
+
+export const saveBooking = async (booking: any) => {
+    await db.setBooking(booking);
+};
