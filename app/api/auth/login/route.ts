@@ -17,8 +17,9 @@ export async function POST(request: Request) {
 
         const verifyData = await verifyResponse.json();
         if (!verifyData.success && process.env.NODE_ENV === "production") {
+            console.error("[AUTH] Turnstile verification failed:", verifyData['error-codes']);
             return NextResponse.json(
-                { error: "Security check failed. Please try again." },
+                { error: `Security check failed: ${verifyData['error-codes']?.join(', ') || 'Unknown error'}. Check your secret key.` },
                 { status: 403 }
             );
         }

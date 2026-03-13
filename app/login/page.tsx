@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import Image from "next/image";
 
 declare global {
     interface Window {
-        onloadTurnstileCallback: () => void;
+        onTurnstileSuccess: (token: string) => void;
         turnstile: any;
     }
 }
@@ -24,18 +24,30 @@ export default function LoginPage() {
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const router = useRouter();
     const { brand } = useBrandSettings();
+    const tokenCaptured = useRef(false);
 
+    // Consolidated Turnstile logic:
+    // 1. Define the callback globally so the script can find it immediately
     useEffect(() => {
-        const handleToken = (e: any) => setTurnstileToken(e.detail);
-        window.addEventListener('turnstileToken', handleToken);
-        return () => window.removeEventListener('turnstileToken', handleToken);
+        window.onTurnstileSuccess = (token: string) => {
+            console.log("[LOGIN] Turnstile token captured");
+            setTurnstileToken(token);
+            tokenCaptured.current = true;
+        };
     }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         
         if (!turnstileToken) {
-            toast.error("Please complete the security check");
+            const hasKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && 
+                           process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY !== "YOUR_TURNSTILE_SITE_KEY";
+            
+            if (!hasKey) {
+                toast.error("Turnstile configuration is missing. Using testing fallback.");
+            } else {
+                toast.error("Please complete the security check (Verify you are human)");
+            }
             return;
         }
 
@@ -48,15 +60,19 @@ export default function LoginPage() {
                 body: JSON.stringify({ email, password, turnstileToken }),
             });
 
+            const data = await res.json();
+
             if (res.ok) {
                 toast.success("Welcome back, Admin!");
                 router.push("/admin");
             } else {
-                const data = await res.json();
-                toast.error(data.error || "Invalid password");
+                toast.error(data.error || "Login failed");
+                // Reset turnstile on failure to allow retry
+                if (window.turnstile) window.turnstile.reset();
+                setTurnstileToken(null);
             }
         } catch (error) {
-            toast.error("Something went wrong. Please try again.");
+            toast.error("Something went wrong. Please check your connection.");
         } finally {
             setIsLoading(false);
         }
@@ -64,6 +80,7 @@ export default function LoginPage() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gray-50/50 font-montserrat">
+            {/* Background elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
@@ -74,13 +91,13 @@ export default function LoginPage() {
                     {brand?.companyLogo ? (
                         <Image src={brand.companyLogo} width={150} height={60} className="h-16 w-auto object-contain" alt="Logo" priority />
                     ) : (
-                        <h1 className="text-4xl font-black text-primary tracking-tighter">
+                        <h1 className="text-4xl font-black text-primary tracking-tighter uppercase italic">
                             YouthCamping
                         </h1>
                     )}
                     <div>
-                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Admin Access</h2>
-                        <p className="text-gray-400 font-medium mt-2 text-sm uppercase tracking-widest">
+                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Admin Portal</h2>
+                        <p className="text-gray-400 font-medium mt-2 text-sm uppercase tracking-widest italic">
                             One Trip at a Time
                         </p>
                     </div>
@@ -115,25 +132,18 @@ export default function LoginPage() {
                         />
                     </div>
 
-                    {/* Cloudflare Turnstile */}
-                    <div className="flex justify-center">
+                    <div className="flex flex-col items-center gap-4">
                         <div 
                             className="cf-turnstile" 
-                            data-sitekey="1x00000000000000000000AA" // Placeholder for testing, replace with real site key
+                            data-sitekey={
+                                (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY !== "YOUR_TURNSTILE_SITE_KEY")
+                                ? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY 
+                                : "1x00000000000000000000AA"
+                            }
                             data-callback="onTurnstileSuccess"
+                            data-theme="light"
                         />
                     </div>
-                    <Script 
-                        src="https://static.turnstile.cloudflare.com/v0/api.js?onload=onloadTurnstileCallback" 
-                        strategy="afterInteractive"
-                    />
-                    <Script id="turnstile-callback">
-                        {`
-                            window.onTurnstileSuccess = function(token) {
-                                window.dispatchEvent(new CustomEvent('turnstileToken', { detail: token }));
-                            };
-                        `}
-                    </Script>
 
                     <Button 
                         type="submit" 
@@ -152,11 +162,16 @@ export default function LoginPage() {
                 </form>
 
                 <div className="mt-12 text-center">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">
-                        Secure Access Only
+                    <p className="text-[10px] text-gray-300 font-bold uppercase tracking-[0.3em]">
+                        Handcrafted by YouthCamping Ops
                     </p>
                 </div>
             </GlassCard>
+
+            <Script 
+                src="https://challenges.cloudflare.com/turnstile/v0/api.js" 
+                strategy="afterInteractive"
+            />
         </main>
     );
 }
