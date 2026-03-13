@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutDashboard, FileText, Palette, Hotel, Calendar, UserCheck, LogOut, Users } from "lucide-react";
+import { Plus, LayoutDashboard, FileText, Palette, Hotel, Calendar, UserCheck, LogOut, Users, CreditCard } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -24,6 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         else if (path === "/admin/branding") setActiveTab("branding");
         else if (path === "/admin/landing") setActiveTab("landing");
         else if (path === "/admin/clients") setActiveTab("clients");
+        else if (path === "/admin/bookings") setActiveTab("bookings");
         else if (path === "/admin/new") setActiveTab("new");
         else setActiveTab("all");
     }, []);
@@ -44,6 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { name: "All Quotes", icon: LayoutDashboard, id: "all", href: "/admin" },
         { name: "Sales Pipeline", icon: Calendar, id: "pipeline", href: "/admin/pipeline" },
         { name: "Client CRM", icon: Users, id: "clients", href: "/admin/clients" },
+        { name: "Bookings", icon: CreditCard, id: "bookings", href: "/admin/bookings" },
         { name: "Create New", icon: Plus, id: "new", href: "/admin/new" },
         { name: "Landing CMS", icon: Hotel, id: "landing", href: "/admin/landing" },
         { name: "Branding", icon: Palette, id: "branding", href: "/admin/branding" },

@@ -199,6 +199,24 @@ ${designation}`;
             }
 
             toast.success("Proposal saved successfully!");
+            
+            // Generate Payment Link
+            const bookingResponse = await fetch('/api/payments/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    quotationId: finalData.id,
+                    clientId: finalData.clientId,
+                    amount: finalData.highLevelPrice,
+                    method: 'Stripe/UPI'
+                })
+            });
+            const bookingData = await bookingResponse.json();
+            
+            if (bookingData.success) {
+                toast.success("Payment link generated for client!");
+            }
+
             router.push("/admin");
         } catch (error) {
             console.error(error);

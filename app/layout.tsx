@@ -61,6 +61,21 @@ export const metadata: Metadata = {
 import { Toaster } from "sonner";
 import { Navbar } from "@/components/ui/Navbar";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
+import { usePathname } from "next/navigation";
+
+function RootLayoutContent({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const isIsolated = pathname.startsWith("/quote/") || pathname.startsWith("/admin");
+
+    return (
+        <>
+            {!isIsolated && <Navbar />}
+            {children}
+            {!isIsolated && <WhatsAppFAB />}
+            <Toaster position="top-right" richColors />
+        </>
+    );
+}
 
 export default function RootLayout({
     children,
@@ -70,10 +85,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${montserrat.variable} font-montserrat antialiased`}>
-                <Navbar />
-                {children}
-                <WhatsAppFAB />
-                <Toaster position="top-right" richColors />
+                <RootLayoutContent>{children}</RootLayoutContent>
             </body>
         </html>
     );
