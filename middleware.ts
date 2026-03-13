@@ -2,13 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { Redis } from "@upstash/redis";
 
-// Initialize Upstash Redis
-const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
-    ? new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-    : null;
+// Initialize Upstash Redis with strict placeholder check
+const redis = (
+    process.env.UPSTASH_REDIS_REST_URL && 
+    process.env.UPSTASH_REDIS_REST_URL !== "YOUR_UPSTASH_REDIS_REST_URL" &&
+    process.env.UPSTASH_REDIS_REST_TOKEN &&
+    process.env.UPSTASH_REDIS_REST_TOKEN !== "YOUR_UPSTASH_REDIS_REST_TOKEN"
+) ? new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+}) : null;
 
 const LIMIT = 5; // max requests for login
 const WINDOW = 15 * 60; // 15 minutes in seconds
@@ -33,17 +36,22 @@ export async function middleware(request: NextRequest) {
         response.headers.set(key, value);
     });
 
-    // 2. Rate Limiting for Login
+    // 2. Rate Limiting for Login with Error Handling
     if (pathname === "/api/auth/login" && redis) {
-        const key = `ratelimit:login:${ip}`;
-        const count = await redis.incr(key);
-        
-        if (count === 1) {
-            await redis.expire(key, WINDOW);
-        }
+        try {
+            const key = `ratelimit:login:${ip}`;
+            const count = await redis.incr(key);
+            
+            if (count === 1) {
+                await redis.expire(key, WINDOW);
+            }
 
-        if (count > LIMIT) {
-            return new NextResponse("Too Many Requests", { status: 429, headers: response.headers });
+            if (count > LIMIT) {
+                return new NextResponse("Too Many Requests", { status: 429, headers: response.headers });
+            }
+        } catch (error) {
+            console.error("[MIDDLEWARE] Redis rate limiting error:", error);
+            // Fall through to allow login if Redis fails
         }
     }
 
