@@ -1,28 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
-import { Lock, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useBrandSettings } from "@/hooks/useBrandSettings";
+import Script from "next/script";
+
+declare global {
+    interface Window {
+        onloadTurnstileCallback: () => void;
+        turnstile: any;
+    }
+}
 
 export default function LoginPage() {
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const router = useRouter();
     const { brand } = useBrandSettings();
 
+    useEffect(() => {
+        const handleToken = (e: any) => setTurnstileToken(e.detail);
+        window.addEventListener('turnstileToken', handleToken);
+        return () => window.removeEventListener('turnstileToken', handleToken);
+    }, []);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!turnstileToken) {
+            toast.error("Please complete the security check");
+            return;
+        }
+
         setIsLoading(true);
 
         try {
             const res = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password }),
+                body: JSON.stringify({ email, password, turnstileToken }),
             });
 
             if (res.ok) {
@@ -66,17 +88,51 @@ export default function LoginPage() {
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div className="relative group">
                         <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">
+                            <ShieldCheck size={20} />
+                        </div>
+                        <input
+                            type="email"
+                            placeholder="Admin Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="w-full pl-14 pr-6 py-5 bg-gray-50 border-2 border-transparent rounded-[1.5rem] font-bold text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary/20 focus:outline-none transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div className="relative group">
+                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">
                             <Lock size={20} />
                         </div>
                         <input
                             type="password"
-                            placeholder="Enter Admin Password"
+                            placeholder="Admin Password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             className="w-full pl-14 pr-6 py-5 bg-gray-50 border-2 border-transparent rounded-[1.5rem] font-bold text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary/20 focus:outline-none transition-all shadow-sm"
                         />
                     </div>
+
+                    {/* Cloudflare Turnstile */}
+                    <div className="flex justify-center">
+                        <div 
+                            className="cf-turnstile" 
+                            data-sitekey="1x00000000000000000000AA" // Placeholder for testing, replace with real site key
+                            data-callback="onTurnstileSuccess"
+                        />
+                    </div>
+                    <Script 
+                        src="https://static.turnstile.cloudflare.com/v0/api.js?onload=onloadTurnstileCallback" 
+                        strategy="afterInteractive"
+                    />
+                    <Script id="turnstile-callback">
+                        {`
+                            window.onTurnstileSuccess = function(token) {
+                                window.dispatchEvent(new CustomEvent('turnstileToken', { detail: token }));
+                            };
+                        `}
+                    </Script>
 
                     <Button 
                         type="submit" 

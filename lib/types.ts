@@ -70,7 +70,7 @@ export type Quotation = {
         designation?: string;
     };
 
-    status: "Draft" | "Published";
+    status: "Draft" | "Published" | "Sent" | "Viewed" | "Interested" | "Booked";
     createdAt: string;
     updatedAt: string;
 };

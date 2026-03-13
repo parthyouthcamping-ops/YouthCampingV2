@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import { getQuotationBySlug } from "@/lib/store";
 import { Quotation } from "@/lib/types";
 import { useBrandSettings } from "@/hooks/useBrandSettings";
@@ -21,9 +22,21 @@ import {
     Phone,
     Sparkles,
     Share2,
+    ArrowRight,
+    Map,
+    Compass,
+    ShieldCheck,
+    FileDown,
     MessageCircle as WhatsAppIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import dynamic from 'next/dynamic';
+
+const PDFDownloadLink = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink), {
+    ssr: false,
+    loading: () => <p className="text-[10px] font-black uppercase text-gray-400 animate-pulse">Initializing PDF Engine...</p>
+});
+import { QuotePDF } from "@/components/quote/QuotePDF";
 
 export default function LuxuryView() {
     const { slug } = useParams();
@@ -52,32 +65,29 @@ export default function LuxuryView() {
         </div>
     );
 
-    return (
-        <div className="bg-white min-h-screen font-montserrat text-[#1a1a1a] selection:bg-primary/20">
-            {/* Clean Premium Branding Header */}
-            <header className="sticky top-0 left-0 right-0 z-[100] bg-white h-[100px] flex items-center transition-all duration-300 border-none">
-                <div className="w-full relative flex items-center justify-center px-6">
-                    {brand && brand.companyLogo ? (
-                        <div className="flex items-center justify-center">
-                            <img
-                                src={brand.companyLogo}
-                                className="max-h-[200px] w-auto object-contain transform-none transition-all"
-                                alt="YouthCamping"
-                            />
-                        </div>
-                    ) : (
-                        <h2 className="text-2xl md:text-3xl font-[900] tracking-tighter text-slate-900 uppercase">
-                            YOUTHCAMPING
-                        </h2>
-                    )}
-                </div>
-            </header>
+    const whatsappMessage = encodeURIComponent(
+        `Hi YouthCamping! I'd like to book my trip to ${q.destination}.\n\n` +
+        `Trip Details:\n` +
+        `- Destination: ${q.destination}\n` +
+        `- Dates: ${q.travelDates?.from ? new Date(q.travelDates.from).toLocaleDateString() : 'TBA'}\n` +
+        `- Pax: ${q.pax} Adults\n` +
+        `- Selected Tier: ${selectedTier.toUpperCase()}\n` +
+        `- Total Price: ₹${((selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice) * q.pax).toLocaleString()}\n\n` +
+        `Quote Link: ${window.location.href}`
+    );
 
+    return (
+        <div className="bg-white min-h-screen font-montserrat text-[#1a1a1a] selection:bg-primary/20 overflow-x-hidden">
             {/* Hero Section */}
             <section className="relative h-screen flex items-center justify-center overflow-hidden">
                 <motion.div style={{ opacity: heroOpacity }} className="absolute inset-0">
-                    <img src={q.heroImage || "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2070&auto=format&fit=crop"}
-                        className="w-full h-full object-cover" alt={q.destination} />
+                    <Image 
+                        src={q.heroImage || "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2070&auto=format&fit=crop"}
+                        alt={q.destination}
+                        fill
+                        priority
+                        className="object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-white" />
                 </motion.div>
 
@@ -96,14 +106,13 @@ export default function LuxuryView() {
                             </h1>
                             <div className="flex items-center justify-center gap-4 mt-6">
                                 <span className="h-[2px] w-12 bg-primary" />
-                                <span className="text-white font-semibold text-sm md:text-lg tracking-widest uppercase">
+                                <span className="text-white font-semibold text-sm md:text-lg tracking-widest uppercase text-shadow">
                                     {q.duration} • {q.pax} ADULTS
                                 </span>
                                 <span className="h-[2px] w-12 bg-primary" />
                             </div>
                         </div>
                     </motion.div>
-
                 </div>
 
                 {/* Scroll Down Indicator */}
@@ -111,7 +120,7 @@ export default function LuxuryView() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1, duration: 1 }}
-                    className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4 cursor-pointer no-print scroll-indicator"
+                    className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4 cursor-pointer no-print"
                     onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
                 >
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Discover More</span>
@@ -126,44 +135,44 @@ export default function LuxuryView() {
             </section>
 
             {/* Traveler & Date Info Section */}
-            <section className="relative z-30 -mt-20 px-6 container mx-auto">
-                <GlassCard className="p-12 md:p-16 rounded-[4rem] shadow-3xl bg-white border-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-                    <div className="flex items-center gap-6 border-r border-gray-100 pr-6 last:border-0 last:pr-0">
-                        <div className="w-14 h-14 bg-primary/5 rounded-[1.2rem] flex items-center justify-center text-primary flex-shrink-0">
+            <section className="relative z-30 -mt-24 px-6 container mx-auto">
+                <GlassCard className="p-12 md:p-16 rounded-[4rem] shadow-3xl bg-white border-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 ring-1 ring-gray-100">
+                    <div className="flex items-center gap-6 md:border-r border-gray-100 pr-6 last:border-0 last:pr-0">
+                        <div className="w-14 h-14 bg-primary/5 rounded-[1.4rem] flex items-center justify-center text-primary flex-shrink-0">
                             <Users size={28} />
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Traveller Name</p>
-                            <p className="text-lg font-semibold text-gray-900 leading-none">{q.clientName}</p>
+                            <p className="text-lg font-black text-gray-900 leading-none">{q.clientName}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-6 border-r border-gray-100 pr-6 last:border-0 last:pr-0">
-                        <div className="w-14 h-14 bg-primary/5 rounded-[1.2rem] flex items-center justify-center text-primary flex-shrink-0">
+                    <div className="flex items-center gap-6 lg:border-r border-gray-100 pr-6 last:border-0 last:pr-0">
+                        <div className="w-14 h-14 bg-primary/5 rounded-[1.4rem] flex items-center justify-center text-primary flex-shrink-0">
                             <Calendar size={28} />
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Travel Dates</p>
-                            <p className="text-lg font-semibold text-gray-900 leading-tight">
+                            <p className="text-lg font-black text-gray-900 leading-tight">
                                 {q.travelDates?.from ? new Date(q.travelDates.from).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : "TBA"} - {q.travelDates?.to ? new Date(q.travelDates.to).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ""}
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-6 border-r border-gray-100 pr-6 last:border-0 last:pr-0">
-                        <div className="w-14 h-14 bg-primary/5 rounded-[1.2rem] flex items-center justify-center text-primary flex-shrink-0">
+                    <div className="flex items-center gap-6 md:border-r border-gray-100 pr-6 last:border-0 last:pr-0">
+                        <div className="w-14 h-14 bg-primary/5 rounded-[1.4rem] flex items-center justify-center text-primary flex-shrink-0">
                             <Sparkles size={28} />
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Duration</p>
-                            <p className="text-lg font-semibold text-gray-900 leading-none">{q.duration}</p>
+                            <p className="text-lg font-black text-gray-900 leading-none">{q.duration}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-6 border-r border-gray-100 pr-6 last:border-0 last:pr-0">
-                        <div className="w-14 h-14 bg-primary/5 rounded-[1.2rem] flex items-center justify-center text-primary flex-shrink-0">
+                    <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 bg-primary/5 rounded-[1.4rem] flex items-center justify-center text-primary flex-shrink-0">
                             <Star size={28} fill="currentColor" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Your Travel Journey</p>
-                            <p className="text-xl font-[900] text-primary leading-none">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Preferred Investment</p>
+                            <p className="text-xl font-black text-primary leading-none">
                                 ₹{(selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice).toLocaleString()}
                             </p>
                         </div>
@@ -171,42 +180,74 @@ export default function LuxuryView() {
                 </GlassCard>
             </section>
 
-            {/* Package Overview / The Experience */}
-            <section className="py-32 container mx-auto px-6 experience-section">
-                <div className="flex flex-col gap-16">
-                    <div className="space-y-4 text-center max-w-4xl mx-auto">
-                        <h2 className="text-5xl md:text-7xl font-semibold tracking-tighter italic text-primary-deep">
+            {/* Package Overview */}
+            <section className="py-40 container mx-auto px-6">
+                <div className="flex flex-col gap-20">
+                    <div className="space-y-6 text-center max-w-4xl mx-auto">
+                        <h2 className="text-primary font-black uppercase tracking-[0.5em] text-xs">Exclusively Curated</h2>
+                        <h3 className="text-5xl md:text-8xl font-black tracking-tighter text-gray-900 leading-[0.85]">
                             The Experience
-                            <span className="block text-gray-900 mt-4 not-italic">Curated Specifically for {q.clientName}</span>
-                        </h2>
+                        </h3>
+                        <p className="text-xl text-gray-500 font-medium italic mt-8 leading-relaxed">
+                            Every mile, every view, and every stay has been handpicked to align with your personal definition of adventure and comfort.
+                        </p>
                     </div>
 
-                    <div className="relative w-full">
-                        <div className="absolute -inset-10 bg-primary/5 rounded-[5rem] blur-3xl -z-10" />
+                    <div className="relative w-full group">
+                        <div className="absolute -inset-10 bg-primary/5 rounded-[5rem] blur-3xl -z-10 group-hover:bg-primary/10 transition-colors duration-1000" />
                         {q.experiencePhotos && q.experiencePhotos.length > 0 ? (
                             <ImageSlider images={q.experiencePhotos} aspectRatio="video" className="w-full rounded-[4rem] shadow-3xl border-8 border-white" />
                         ) : (
-                            <img
-                                src={q.coverImage || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop"}
-                                className="w-full aspect-video object-cover rounded-[4rem] shadow-3xl border-8 border-white"
-                                alt="Cover"
-                            />
+                            <div className="relative aspect-video w-full rounded-[4rem] overflow-hidden shadow-3xl border-8 border-white">
+                                <Image
+                                    src={q.coverImage || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop"}
+                                    alt="Experience Cover"
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
                         )}
                     </div>
                 </div>
             </section>
 
-            {/* Itinerary */}
+            {/* Trust Signal: How It Works */}
             <section className="py-32 bg-gray-50/50">
                 <div className="container mx-auto px-6">
-                    <div className="text-center mb-20 space-y-4">
-                        <h2 className="text-5xl font-semibold tracking-tight text-primary">Your Daily Journey</h2>
-                        <p className="text-gray-400 font-semibold uppercase tracking-[0.2em] italic">Day-by-Day Luxury Curated</p>
+                    <div className="text-center mb-24">
+                        <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs mb-4">The YouthCamping Method</h2>
+                        <h3 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight">Our Precision Curation</h3>
                     </div>
 
-                    <div className="flex flex-col relative gap-20">
+                    <div className="grid md:grid-cols-3 gap-12">
+                        {[
+                            { icon: Compass, title: "1. Consultation", desc: "We understood your goals for this trip to ensure every highlight is meaningful." },
+                            { icon: Map, title: "2. Bespoke Curation", desc: "Our team analyzed dozens of routes to select the most picturesque and seamless path." },
+                            { icon: CheckCircle2, title: "3. Elite Execution", desc: "Once booked, our ground partners ensure your itinerary is executed with zero friction." }
+                        ].map((step, i) => (
+                            <div key={i} className="bg-white p-12 rounded-[3.5rem] border border-gray-100 shadow-xl flex flex-col items-center text-center">
+                                <div className="bg-primary/5 w-20 h-20 rounded-3xl flex items-center justify-center text-primary mb-8">
+                                    <step.icon size={36} />
+                                </div>
+                                <h4 className="text-2xl font-black text-gray-900 mb-4">{step.title}</h4>
+                                <p className="text-gray-500 font-medium leading-relaxed italic">{step.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Itinerary */}
+            <section className="py-40">
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-32 space-y-4">
+                        <h2 className="text-5xl md:text-8xl font-black tracking-tight text-gray-900 uppercase">Your Daily Story</h2>
+                        <div className="h-2 w-24 bg-primary mx-auto rounded-full" />
+                    </div>
+
+                    <div className="flex flex-col relative gap-40">
                         {/* Timeline Line */}
-                        <div className="absolute left-8 lg:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/5 via-primary/20 to-primary/5 -translate-x-1/2 hidden md:block timeline-line" />
+                        <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/5 via-primary/20 to-primary/5 -translate-x-1/2 hidden lg:block" />
 
                         {q.itinerary?.map((day, idx) => (
                             <motion.div
@@ -214,389 +255,205 @@ export default function LuxuryView() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true, margin: "-100px" }}
-                                className={`flex flex-col lg:flex-row gap-12 lg:gap-24 mb-32 items-center relative ${idx % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}
+                                className={`flex flex-col lg:flex-row gap-20 lg:gap-32 items-center relative ${idx % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}
                             >
                                 {/* Timeline Dot */}
-                                <div className="absolute left-8 lg:left-1/2 top-0 -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-4 border-white shadow-lg z-10 hidden md:block" />
+                                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-2xl z-10 hidden lg:block" />
 
-                                <div className="flex-1 space-y-10">
-                                    <div className={`flex flex-col ${idx % 2 !== 0 ? 'lg:items-end lg:text-right' : 'lg:items-start'} gap-4`}>
-                                        <div className="flex items-center gap-4">
-                                            <span className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center text-xl font-semibold italic shadow-xl shadow-primary/30">
-                                                {day.day}
+                                <div className="flex-1 space-y-12">
+                                    <div className={`flex flex-col ${idx % 2 !== 0 ? 'lg:items-end lg:text-right' : 'lg:items-start'} gap-6`}>
+                                        <div className="flex items-center gap-6">
+                                            <span className="w-20 h-20 rounded-[2rem] bg-gray-900 text-white flex items-center justify-center text-2xl font-black italic shadow-2xl">
+                                                0{day.day}
                                             </span>
-                                            <h3 className="text-4xl font-semibold tracking-tighter text-gray-900">{day.title}</h3>
+                                            <h3 className="text-4xl md:text-5xl font-black tracking-tighter text-gray-900">{day.title}</h3>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-6">
-                                        <p className={`text-lg text-gray-500 font-medium leading-relaxed italic ${idx % 2 !== 0 ? 'lg:text-right' : ''}`}>
+                                    <div className="space-y-10">
+                                        <p className={`text-xl text-gray-500 font-medium leading-relaxed italic ${idx % 2 !== 0 ? 'lg:text-right' : ''}`}>
                                             {day.description}
                                         </p>
 
-                                        <div className="space-y-8 flex flex-col">
-                                            <div className="space-y-4 w-full">
-                                                <div className={`flex items-center gap-3 ${idx % 2 !== 0 ? 'lg:justify-end' : ''}`}>
+                                        <div className="space-y-12 flex flex-col">
+                                            <div className="space-y-6 w-full">
+                                                <div className={`flex items-center gap-4 ${idx % 2 !== 0 ? 'lg:justify-end' : ''}`}>
                                                     <div className="h-px bg-primary/20 flex-1" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Daily Highlights</span>
-                                                    <div className="h-px bg-primary/20 flex-1 lg:hidden" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Daily Curated Highlights</span>
                                                 </div>
-                                                <ul className={`grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4 ${idx % 2 !== 0 ? 'lg:justify-items-end' : ''}`}>
+                                                <ul className={`grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 ${idx % 2 !== 0 ? 'lg:justify-items-end' : ''}`}>
                                                     {day.activities?.map((act, i) => (
                                                         act && (
-                                                            <li key={i} className="flex items-start gap-3 group text-gray-700">
-                                                                <CheckCircle2 size={16} className="text-primary mt-1 flex-shrink-0" />
-                                                                <span className="text-sm font-semibold group-hover:text-primary transition-colors">{act}</span>
+                                                            <li key={i} className={`flex items-start gap-4 group text-gray-800 ${idx % 2 !== 0 ? 'lg:flex-row-reverse text-right' : ''}`}>
+                                                                <CheckCircle2 size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                                                                <span className="text-base font-bold transition-colors">{act}</span>
                                                             </li>
                                                         )
                                                     ))}
                                                 </ul>
                                             </div>
-
-                                            {day.sightseeing && day.sightseeing.length > 0 && day.sightseeing[0] !== "" && (
-                                                <div className="space-y-4 w-full">
-                                                    <div className={`flex items-center gap-3 ${idx % 2 !== 0 ? 'lg:justify-end' : ''}`}>
-                                                        <div className="h-px bg-primary/20 flex-1" />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Sightseeing Places</span>
-                                                        <div className="h-px bg-primary/20 flex-1 lg:hidden" />
-                                                    </div>
-                                                    <div className={`flex flex-wrap gap-3 ${idx % 2 !== 0 ? 'lg:justify-end' : ''}`}>
-                                                        {day.sightseeing.map((place, i) => (
-                                                            place && (
-                                                                <span key={i} className="px-6 py-3 bg-primary/5 rounded-2xl text-[11px] font-black text-primary uppercase tracking-[0.1em] border border-primary/10 shadow-sm hover:bg-primary hover:text-white transition-all transform hover:-translate-y-1">
-                                                                    {place}
-                                                                </span>
-                                                            )
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 w-full relative itinerary-item">
-                                    <div className="absolute -inset-4 bg-primary/5 rounded-[3rem] blur-2xl -z-10 opacity-60" />
-                                    <ImageSlider images={day.photos} className="shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] rounded-[2.5rem] overflow-hidden border border-white/20" />
+                                <div className="flex-1 w-full relative">
+                                    <div className="absolute -inset-6 bg-primary/5 rounded-[4rem] blur-3xl -z-10 opacity-60" />
+                                    <ImageSlider images={day.photos} className="shadow-3xl rounded-[3.5rem] overflow-hidden border-8 border-white" />
                                 </div>
                             </motion.div>
                         ))}
-
-                        {q.routeMap && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                className="mt-20 flex flex-col items-center gap-10"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="h-[2px] w-12 bg-primary/20" />
-                                    <h3 className="text-xl font-black italic tracking-widest uppercase text-gray-400">Your Route Map</h3>
-                                    <div className="h-[2px] w-12 bg-primary/20" />
-                                </div>
-                                <div className="relative w-full max-w-5xl group">
-                                    <div className="absolute -inset-10 bg-primary/5 rounded-[5rem] blur-3xl -z-10" />
-                                    <img src={q.routeMap} className="w-full rounded-[3.5rem] shadow-3xl border-8 border-white object-cover aspect-video" alt="Route Map" />
-                                    <div className="absolute inset-0 rounded-[3.5rem] bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-                                </div>
-                            </motion.div>
-                        )}
                     </div>
                 </div>
             </section>
 
-            {/* Hotels */}
-            <section className="py-32 container mx-auto px-6">
-                <div className="mb-20 flex flex-col md:flex-row justify-between items-end gap-10">
-                    <div>
-                        <h2 className="text-5xl font-black tracking-tighter mb-4 text-primary uppercase">The Retreats</h2>
-                        <p className="text-gray-400 font-semibold uppercase tracking-[0.2em]">Exquisite Stays Selected for You</p>
-                    </div>
-
-                    <div className="flex bg-gray-50 p-2 rounded-[2rem] border border-gray-100 self-start md:self-end no-print">
-                        <button
-                            onClick={() => setSelectedTier('standard')}
-                            className={`px-8 py-4 rounded-[1.5rem] flex flex-col items-center transition-all ${selectedTier === 'standard' ? 'bg-white shadow-xl text-primary' : 'text-gray-400 hover:text-gray-600'}`}
-                        >
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Hotel Option 1</span>
-                            <span className="text-[11px] font-semibold mt-1">₹{q.lowLevelPrice.toLocaleString()} Per Person</span>
-                        </button>
-                        <button
-                            onClick={() => setSelectedTier('luxury')}
-                            className={`px-8 py-4 rounded-[1.5rem] flex flex-col items-center transition-all ${selectedTier === 'luxury' ? 'bg-primary shadow-xl text-white' : 'text-gray-400 hover:text-gray-600'}`}
-                        >
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Hotel Option 2</span>
-                            <span className="text-[11px] font-semibold mt-1 opacity-80">₹{q.highLevelPrice.toLocaleString()} Per Person</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    {(selectedTier === 'standard' ? q.lowLevelHotels || [] : q.highLevelHotels || []).map((hotel) => (
-                        <GlassCard key={hotel.id} className="p-0 overflow-hidden flex flex-col group border-gray-100 hover:border-primary/20 transition-all shadow-xl hover:shadow-2xl hotel-card">
-                            <div className="p-10 pb-6 w-full space-y-6">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="text-3xl font-black tracking-tighter group-hover:text-primary transition-colors">{hotel.name}</h3>
-                                        <p className="text-sm font-semibold text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-2">
-                                            <MapPin size={16} className="text-primary/40" /> {hotel.location}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-1 text-primary">
-                                        {Array.from({ length: hotel.rating }).map((_, i) => <Star key={i} size={18} fill="currentColor" />)}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="px-10 mb-8">
-                                <ImageSlider images={hotel.photos} aspectRatio="video" className="rounded-[2rem] w-full shadow-2xl" />
-                            </div>
-
-                            <div className="px-10 pb-10 w-full">
-                                <p className="text-gray-500 font-medium leading-relaxed italic border-l-4 border-gray-50 pl-6 text-sm">
-                                    &quot;{hotel.description}&quot;
-                                </p>
-                            </div>
-                        </GlassCard>
-                    ))}
-                </div>
-            </section>
-
-            {/* Custom Dynamic Sections */}
-            {(q.customSections || []).filter(s => s.isVisible).map((section) => (
-                <section key={section.id} className="py-24 bg-white overflow-hidden">
-                    <div className="container mx-auto px-6">
-                        <GlassCard className="p-16 rounded-[4rem] border-none shadow-3xl bg-gray-50/30 ring-1 ring-gray-100 flex flex-col md:flex-row gap-16 items-center">
-                            <div className="flex-1 space-y-8 text-left">
-                                <div className="space-y-4">
-                                    <h2 className="text-5xl font-black tracking-tight text-gray-900 leading-tight">
-                                        {section.heading}
-                                    </h2>
-                                    <div className="h-1.5 w-24 bg-primary rounded-full" />
-                                </div>
-                                <p className="text-xl text-gray-500 leading-relaxed font-medium whitespace-pre-wrap">
-                                    {section.description}
-                                </p>
-                                {section.buttonLabel && section.buttonLink && (
-                                    <Button
-                                        onClick={() => window.open(section.buttonLink, '_blank')}
-                                        className="rounded-2xl px-12 py-8 text-lg shadow-xl shadow-primary/20"
-                                    >
-                                        {section.buttonLabel}
-                                    </Button>
-                                )}
-                            </div>
-                            {section.image && (
-                                <div className="flex-1 w-full">
-                                    <img
-                                        src={section.image}
-                                        alt={section.heading}
-                                        className="w-full h-auto rounded-[3rem] shadow-2xl object-cover aspect-video md:aspect-square"
-                                    />
-                                </div>
-                            )}
-                        </GlassCard>
-                    </div>
-                </section>
-            ))}
-
-            {/* Pricing, Includes & Exclusions */}
-            <section className="py-32 bg-white">
+            {/* Pricing Card Section */}
+            <section id="pricing" className="py-40 bg-[#0a192f] text-white">
                 <div className="container mx-auto px-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
-                        <div className="space-y-20">
+                    <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-20 items-stretch">
+                        <div className="flex-1 space-y-16">
                             <div className="space-y-6">
-                                <h2 className="text-6xl font-black tracking-tight text-primary uppercase">The Experience</h2>
-                                <p className="text-primary-deep font-black uppercase tracking-[0.3em]">Curated Inclusions for your perfection</p>
+                                <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs">Investment in Memories</h2>
+                                <h3 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-none">
+                                    Elite <br />Value
+                                </h3>
                             </div>
 
-                            <div className="space-y-16">
-                                <div className="space-y-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
-                                            <CheckCircle2 size={24} />
-                                        </div>
-                                        <h3 className="text-2xl font-semibold uppercase tracking-widest text-gray-900">What's Included</h3>
+                            <div className="grid md:grid-cols-2 gap-10">
+                                <div className="space-y-8 bg-white/5 p-12 rounded-[3.5rem] border border-white/5 backdrop-blur-xl">
+                                    <div className="flex items-center gap-4 text-primary">
+                                        <CheckCircle2 size={28} />
+                                        <h4 className="text-xl font-black uppercase tracking-widest text-white">Elite Inclusions</h4>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-10 rounded-[3rem] border border-gray-100 includes-section">
-                                        {q.includes?.map((inc, i) => (
-                                            inc && (
-                                                <div key={i} className="flex items-start gap-4 text-gray-600 font-semibold uppercase tracking-[0.1em] text-[11px] leading-relaxed group">
-                                                    <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0 group-hover:scale-150 transition-transform" />
-                                                    {inc}
-                                                </div>
-                                            )
+                                    <ul className="space-y-6">
+                                        {q.includes?.slice(0, 6).map((inc, i) => (
+                                            <li key={i} className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                {inc}
+                                            </li>
                                         ))}
-                                    </div>
+                                    </ul>
                                 </div>
-
-                                <div className="space-y-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-600">
-                                            <XCircle size={24} />
-                                        </div>
-                                        <h3 className="text-2xl font-semibold uppercase tracking-widest text-gray-900">What's Excluded</h3>
+                                <div className="space-y-10 flex flex-col justify-center">
+                                    <div className="flex bg-white/5 p-2 rounded-[2rem] border border-white/10 no-print">
+                                        <button
+                                            onClick={() => setSelectedTier('standard')}
+                                            className={`flex-1 px-8 py-5 rounded-[1.5rem] flex flex-col items-center transition-all ${selectedTier === 'standard' ? 'bg-primary text-white shadow-2xl' : 'text-gray-400'}`}
+                                        >
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Option 1</span>
+                                            <span className="text-xs font-bold mt-1">₹{q.lowLevelPrice.toLocaleString()}</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedTier('luxury')}
+                                            className={`flex-1 px-8 py-5 rounded-[1.5rem] flex flex-col items-center transition-all ${selectedTier === 'luxury' ? 'bg-primary text-white shadow-2xl' : 'text-gray-400'}`}
+                                        >
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Option 2</span>
+                                            <span className="text-xs font-bold mt-1">₹{q.highLevelPrice.toLocaleString()}</span>
+                                        </button>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-10 rounded-[3rem] border border-gray-100 includes-section">
-                                        {q.exclusions?.map((exc, i) => (
-                                            exc && (
-                                                <div key={i} className="flex items-start gap-4 text-gray-400 font-semibold uppercase tracking-[0.1em] text-[11px] leading-relaxed group">
-                                                    <div className="w-2 h-2 rounded-full bg-gray-300 mt-1.5 flex-shrink-0 group-hover:bg-red-300 transition-colors" />
-                                                    {exc}
-                                                </div>
-                                            )
-                                        ))}
+                                    <div className="text-center lg:text-left">
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] mb-4">Pricing Validity</p>
+                                        <p className="text-white/40 font-bold uppercase tracking-widest text-[10px]">Your price is locked for the next 72 hours only.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <GlassCard className="p-16 rounded-[4rem] text-center space-y-10 shadow-3xl shadow-primary/20 bg-white sticky top-32 border-none ring-1 ring-gray-100 pricing-card">
-                            <div className="space-y-2">
-                                <h3 className="text-sm font-black text-gray-300 uppercase tracking-[0.4em] mb-4">Your Travel Journey</h3>
-                                <div className="flex items-center justify-center gap-3">
-                                    <span className={`w-3 h-3 rounded-full ${selectedTier === 'standard' ? 'bg-gray-400' : 'bg-primary'}`} />
-                                    <span className="text-xs font-black uppercase tracking-widest text-gray-500">
-                                        {selectedTier === 'standard' ? 'Hotel Option 1' : 'Hotel Option 2'} Included
-                                    </span>
-                                </div>
+                        <div className="lg:w-[450px] bg-white text-gray-900 rounded-[4rem] p-16 flex flex-col items-center justify-center text-center shadow-3xl overflow-hidden relative group">
+                            <div className="absolute top-0 left-0 w-full h-3 bg-primary" />
+                            <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.5em] mb-12 italic">Total Trip Value</h4>
+
+                            <div className="space-y-4 mb-20">
+                                <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Per Traveler</p>
+                                <p className="text-7xl font-black tracking-tighter text-gray-900">
+                                    ₹{(selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice).toLocaleString()}
+                                </p>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-10">
-                                <div className="space-y-2 p-8 bg-gray-50/50 rounded-[2.5rem] border border-gray-100">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price Per Person</p>
-                                    <p className="text-6xl font-semibold text-primary tracking-tighter">
-                                        ₹{(selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice).toLocaleString()}
-                                    </p>
-                                </div>
+                            <div className="w-full h-px bg-gray-100 mb-20" />
 
-                                <div className="space-y-2 p-8 bg-primary/[0.03] rounded-[2.5rem] border border-primary/5">
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">Total Package Value</p>
-                                    <p className="text-5xl font-semibold text-primary tracking-tighter">
-                                        ₹{((selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice) * q.pax).toLocaleString()}
-                                    </p>
-                                    <p className="text-[10px] font-black text-primary/40 uppercase tracking-widest mt-2">{q.pax} Premium Travelers</p>
-                                </div>
+                            <div className="space-y-4 w-full mb-20">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Full Group Package</p>
+                                <p className="text-4xl font-black tracking-tight text-primary">
+                                    ₹{((selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice) * q.pax).toLocaleString()}
+                                </p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{q.pax} Premium Slots</p>
                             </div>
 
-                            <div className="space-y-6 pt-4 no-print">
-                                <Button
-                                    onClick={() => {
-                                        const message = encodeURIComponent(`Hi ${q.expert.name || 'Travel Expert'}, I would like to book my trip from this quotation: ${window.location.href}`);
-                                        window.open(`https://wa.me/${q.expert.whatsapp}?text=${message}`, '_blank');
-                                    }}
-                                    size="lg"
-                                    className="w-full py-10 text-xl tracking-[0.2em] font-black uppercase rounded-[2rem] shadow-2xl shadow-primary/30"
+                            <Button
+                                onClick={() => window.open(`https://wa.me/${q.expert.whatsapp}?text=${whatsappMessage}`, '_blank')}
+                                className="w-full py-10 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-105 mb-4"
+                            >
+                                <WhatsAppIcon className="mr-3" size={24} />
+                                Book This Trip
+                            </Button>
+
+                            <div className="w-full no-print">
+                                <PDFDownloadLink 
+                                    document={<QuotePDF q={q} selectedTier={selectedTier} />} 
+                                    fileName={`YouthCamping_Quote_${q.destination.replace(/\s/g, '_')}.pdf`}
                                 >
-                                    Book Your Trip
-                                </Button>
-                                <p className="text-[10px] text-gray-300 font-semibold uppercase tracking-[0.3em]">Pricing valid for 48 hours from generation</p>
+                                    {({ loading }) => (
+                                        <Button
+                                            variant="outline"
+                                            disabled={loading}
+                                            className="w-full py-8 border-2 border-gray-100 text-gray-400 hover:text-primary hover:border-primary/20 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all"
+                                        >
+                                            <FileDown size={18} />
+                                            {loading ? 'Generating...' : 'Download PDF Quote'}
+                                        </Button>
+                                    )}
+                                </PDFDownloadLink>
                             </div>
-                        </GlassCard>
+                        </div>
                     </div>
                 </div>
             </section>
 
-
-            {/* Expert Section */}
-            <section className="py-24 container mx-auto px-6 max-w-3xl">
-                <GlassCard className="p-10 md:p-12 rounded-[3rem] text-center md:text-left shadow-2xl border-gray-50 bg-white/50">
-                    <div className="flex flex-col md:flex-row items-center gap-10">
-                        <div className="relative flex-shrink-0">
-                            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-primary/10 shadow-lg">
-                                <img
-                                    src={q.expert.photo || "https://ui-avatars.com/api/?name=" + encodeURIComponent(q.expert.name || "Expert") + "&background=random"}
-                                    className="w-full h-full object-cover"
-                                    alt={q.expert.name}
-                                />
-                            </div>
-                            <div className="absolute -bottom-1 -right-1 bg-[#25D366] w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-md">
-                                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                            </div>
+            {/* Expert Personal Touch */}
+            <section className="py-40 bg-white">
+                <div className="container mx-auto px-6 max-w-4xl">
+                    <div className="flex flex-col md:flex-row items-center gap-16 bg-gray-50 p-16 rounded-[4rem] border border-gray-100 relative">
+                        <div className="absolute -top-10 -left-10 w-24 h-24 bg-primary rounded-[2rem] flex items-center justify-center text-white shadow-2xl">
+                            <MessageCircle size={44} />
                         </div>
 
-                        <div className="flex-1 space-y-4">
-                            <div className="space-y-1">
-                                <p className="text-primary font-black uppercase tracking-[0.3em] text-[9px]">Talk to your travel expert</p>
-                                <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-tight">
-                                    {q.expert.name || "Your Expert"}
-                                </h2>
-                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest opacity-80">
-                                    {q.expert.designation || "Youthcamping Travel Expert"}
-                                </p>
-                            </div>
+                        <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-white shadow-2xl flex-shrink-0">
+                            <Image
+                                src={q.expert.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(q.expert.name || 'Expert')}&background=random`}
+                                alt={q.expert.name || "Expert"}
+                                width={160}
+                                height={160}
+                                className="object-cover"
+                            />
+                        </div>
 
-                            <p className="text-base text-gray-500 font-medium leading-relaxed italic">
-                                &quot;I have personally curated every element of this journey to ensure it exceeds your expectations of luxury.&quot;
+                        <div className="space-y-6">
+                            <div>
+                                <h4 className="text-3xl font-black text-gray-900 tracking-tight">{q.expert.name}</h4>
+                                <p className="text-primary font-bold uppercase tracking-widest text-[10px] mt-1 italic">{q.expert.designation || "Luxury Curator"}</p>
+                            </div>
+                            <p className="text-lg text-gray-500 font-medium leading-relaxed italic border-l-4 border-primary/20 pl-8">
+                                &quot;Designing journeys for travelers like you is a privilege. I've ensured this proposal reflects the high-end standards you deserve.&quot;
                             </p>
-
-                            <div className="pt-2 no-print">
-                                <Button
-                                    onClick={() => {
-                                        const message = encodeURIComponent(`Hi ${q.expert.name || 'Travel Expert'}, I would like to book my trip from this quotation: ${window.location.href}`);
-                                        window.open(`https://wa.me/${q.expert.whatsapp}?text=${message}`, '_blank');
-                                    }}
-                                    className="inline-flex items-center gap-4 bg-[#25D366] text-white px-8 py-4 rounded-2xl font-black tracking-widest uppercase text-xs shadow-lg shadow-green-200 hover:scale-105 active:scale-95 transition-all text-left h-auto"
-                                >
-                                    <MessageCircle size={18} /> Chat on WhatsApp
-                                </Button>
-                            </div>
+                            <Button
+                                onClick={() => window.open(`https://wa.me/${q.expert.whatsapp}?text=${whatsappMessage}`, '_blank')}
+                                className="bg-[#0a192f] hover:bg-black text-white px-10 py-6 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl"
+                            >
+                                Chat with {q.expert.name.split(' ')[0]}
+                            </Button>
                         </div>
                     </div>
-                </GlassCard>
-            </section >
-
-            {/* Footer */}
-            < footer className="py-20 bg-gray-900 text-white" >
-                <div className="container mx-auto px-6 text-center">
-                    <div className="flex flex-col items-center gap-12 border-b border-white/5 pb-16 mb-16">
-                        <div className="flex flex-col items-center gap-6">
-                            <h2 className="text-2xl md:text-3xl font-semibold tracking-[0.3em] text-white uppercase font-montserrat">
-                                youthcamping.in
-                            </h2>
-                            <p className="text-gray-500 font-semibold uppercase tracking-[0.4em] italic text-[10px]">One Trip at a Time</p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl mx-auto no-print">
-                            <div className="flex flex-col items-center gap-4 group">
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Follow Us</span>
-                                <a
-                                    href={brand?.instagramLink || "#"}
-                                    target="_blank"
-                                    className="flex items-center gap-3 bg-white/5 hover:bg-primary px-8 py-5 rounded-2xl transition-all w-full justify-center group-hover:scale-105"
-                                >
-                                    <Instagram size={24} />
-                                    <span className="font-semibold text-sm">Instagram</span>
-                                </a>
-                            </div>
-
-                            <div className="flex flex-col items-center gap-4 group">
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Visit Our Website</span>
-                                <a
-                                    href={brand?.websiteLink || "#"}
-                                    target="_blank"
-                                    className="flex items-center gap-3 bg-white/5 hover:bg-primary px-8 py-5 rounded-2xl transition-all w-full justify-center group-hover:scale-105"
-                                >
-                                    <Globe size={24} />
-                                    <span className="font-semibold text-sm">Our Website</span>
-                                </a>
-                            </div>
-
-                            <div className="flex flex-col items-center gap-4 group">
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Call Us</span>
-                                <a
-                                    href={`tel:${brand?.phoneNumber?.replace(/\s/g, "")}`}
-                                    className="flex items-center gap-3 bg-white/5 hover:bg-primary px-8 py-5 rounded-2xl transition-all w-full justify-center group-hover:scale-105"
-                                >
-                                    <Phone size={24} />
-                                    <span className="font-semibold text-sm">{brand?.phoneNumber || "Contact Us"}</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <p className="text-[10px] text-gray-600 font-semibold uppercase tracking-[0.4em]">{brand?.footerText || `© ${new Date().getFullYear()} YouthCamping Luxury Travel. All Rights Reserved.`}</p>
                 </div>
-            </footer >
-        </div >
+            </section>
+
+            {/* Final Trust CTA */}
+            <section className="py-20 bg-gray-50/50 text-center border-t border-gray-100">
+                <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em] mb-4">YouthCamping Private Access</p>
+                <div className="flex items-center justify-center gap-4 text-gray-400">
+                    <ShieldCheck size={16} />
+                    <span className="font-bold text-[10px] uppercase tracking-widest">End-to-End Secure Travel Curation</span>
+                </div>
+            </section>
+        </div>
     );
 }

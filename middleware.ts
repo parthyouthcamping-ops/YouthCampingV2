@@ -1,11 +1,54 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { Redis } from "@upstash/redis";
 
-export function middleware(request: NextRequest) {
+// Initialize Upstash Redis
+const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+    ? new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+    : null;
+
+const LIMIT = 5; // max requests for login
+const WINDOW = 15 * 60; // 15 minutes in seconds
+
+export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+    const response = NextResponse.next();
     const adminSession = request.cookies.get("admin_session")?.value;
+    const ip = (request as any).ip || request.headers.get("x-forwarded-for") || "unknown";
 
-    // 1. Protect /admin routes
+    // 1. Inject Security Headers
+    const securityHeaders = {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.turnstile.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://images.unsplash.com https://res.cloudinary.com https://ui-avatars.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://static.turnstile.cloudflare.com; frame-src 'self' https://static.turnstile.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;",
+        "X-Frame-Options": "DENY",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+        "X-XSS-Protection": "1; mode=block",
+    };
+
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value);
+    });
+
+    // 2. Rate Limiting for Login
+    if (pathname === "/api/auth/login" && redis) {
+        const key = `ratelimit:login:${ip}`;
+        const count = await redis.incr(key);
+        
+        if (count === 1) {
+            await redis.expire(key, WINDOW);
+        }
+
+        if (count > LIMIT) {
+            return new NextResponse("Too Many Requests", { status: 429, headers: response.headers });
+        }
+    }
+
+    // 3. Protect /admin routes
     if (pathname.startsWith("/admin")) {
         if (adminSession !== "authenticated") {
             const url = new URL("/login", request.url);
@@ -13,21 +56,9 @@ export function middleware(request: NextRequest) {
         }
     }
 
-    // 2. Protect sensitive /api/db actions
-    if (pathname === "/api/db" && request.method === "POST") {
-        // We can't easily check the body in middleware without breaking the request for the route handler
-        // But we can check the cookie for ANY POST request to /api/db as a baseline
-        // Note: Public quote pages only use GET-like POST requests (action: 'get' or 'getBySlug')
-        // However, since we're hardening, we'll implement the body check INSIDE the route handler itself
-        // for more granular control. But for now, let's at least block /api/db POST if no session 
-        // IF we want to be super strict. 
-        // ACTUALLY, /quote/[slug] needs to call /api/db (POST) to 'get' data.
-        // So we SHOULD NOT block all /api/db POSTs here.
-    }
-
-    return NextResponse.next();
+    return response;
 }
 
 export const config = {
-    matcher: ["/admin/:path*", "/api/db/:path*"],
+    matcher: ["/admin/:path*", "/api/auth/login", "/api/db/:path*"],
 };

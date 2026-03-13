@@ -12,9 +12,17 @@ import { cn } from "@/lib/utils";
 import { useBrandSettings } from "@/hooks/useBrandSettings";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const [activeTab, setActiveTab] = useState("all");
     const { brand } = useBrandSettings();
     const router = useRouter();
+    const [activeTab, setActiveTab] = useState("all");
+
+    useEffect(() => {
+        const path = window.location.pathname;
+        if (path === "/admin/pipeline") setActiveTab("pipeline");
+        else if (path === "/admin/branding") setActiveTab("branding");
+        else if (path === "/admin/new") setActiveTab("new");
+        else setActiveTab("all");
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -30,6 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const sidebarLinks = [
         { name: "All Quotes", icon: LayoutDashboard, id: "all", href: "/admin" },
+        { name: "Sales Pipeline", icon: Calendar, id: "pipeline", href: "/admin/pipeline" },
         { name: "Create New", icon: Plus, id: "new", href: "/admin/new" },
         { name: "Branding", icon: Palette, id: "branding", href: "/admin/branding" },
     ];

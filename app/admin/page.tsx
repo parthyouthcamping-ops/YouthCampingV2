@@ -26,10 +26,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { MessageCircle as WhatsAppIcon } from "lucide-react";
+import { WhatsAppLauncher } from "@/components/admin/WhatsAppLauncher";
 
 export default function AdminDashboard() {
     const [quotations, setQuotations] = useState<Quotation[]>([]);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [launcherQuotation, setLauncherQuotation] = useState<Quotation | null>(null);
     const { brand } = useBrandSettings();
     const router = useRouter();
 
@@ -87,26 +89,7 @@ export default function AdminDashboard() {
     };
 
     const handleWhatsAppShare = (q: Quotation) => {
-        const customerName = q.clientName || 'Valued Customer';
-        const companyName = brand?.companyName || "YouthCamping";
-        const quotationLink = `${window.location.origin}/quote/${q.slug}`;
-        const expertName = q.expert?.name || "Travel Expert";
-        const expertDesignation = q.expert?.designation || `${companyName} Destination Expert`;
-
-        const message = `Hi ${customerName},
-
-Greetings from ${companyName}.
-
-As per our recent conversation, we've prepared a customized quotation for you based on your requirements. You can view the quotation by clicking on the following link: 
-${quotationLink}
-
-If you'd like to proceed, simply tap "Book My Trip" below and chat directly with our destination expert.
-
-${expertName}
-${expertDesignation}`;
-
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
+        setLauncherQuotation(q);
     };
 
     return (
@@ -233,6 +216,16 @@ ${expertDesignation}`;
                     ))}
                 </div>
             )}
+
+            {/* WhatsApp Launcher Modal */}
+            <AnimatePresence>
+                {launcherQuotation && (
+                    <WhatsAppLauncher 
+                        quotation={launcherQuotation} 
+                        onClose={() => setLauncherQuotation(null)} 
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Delete Confirmation Modal */}
             <AnimatePresence>
