@@ -134,6 +134,30 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: true });
         }
 
+        if (action === 'getLandingSection') {
+            const result = await sql`SELECT data FROM landing_sections WHERE id = ${id}`;
+            return NextResponse.json(result[0]?.data || null);
+        }
+
+        if (action === 'setLandingSection') {
+            const jsonString = JSON.stringify(data);
+            await sql`
+                INSERT INTO landing_sections (id, data, updated_at)
+                VALUES (${id}, ${jsonString}::jsonb, ${new Date().toISOString()})
+                ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at
+            `;
+            return NextResponse.json({ success: true });
+        }
+
+        if (action === 'getAllLandingSections') {
+            const result = await sql`SELECT id, data FROM landing_sections`;
+            const mapped = result.reduce((acc: any, curr: any) => {
+                acc[curr.id] = curr.data;
+                return acc;
+            }, {});
+            return NextResponse.json(mapped);
+        }
+
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
 
     } catch (error: any) {

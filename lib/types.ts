@@ -86,3 +86,49 @@ export type BrandSettings = {
     footerText?: string;
     updatedAt: string;
 };
+
+export type LandingHero = {
+    title: string;
+    subtitle: string;
+    highlight?: string;
+    backgroundImage: string;
+    ctaText: string;
+};
+
+export type LandingAbout = {
+    title: string;
+    content: string;
+    image: string;
+};
+
+export type LandingPackage = {
+    id: string;
+    name: string;
+    price: string;
+    duration: string;
+    image: string;
+};
+
+export type LandingTestimonial = {
+    id: string;
+    name: string;
+    trip: string;
+    photo: string;
+    quote: string;
+    rating: number;
+};
+
+export type LandingGalleryItem = {
+    id: string;
+    url: string;
+    type: 'image' | 'video';
+    caption?: string;
+};
+
+export type LandingContent = {
+    hero: LandingHero;
+    about: LandingAbout;
+    packages: LandingPackage[];
+    testimonials: LandingTestimonial[];
+    gallery: LandingGalleryItem[];
+};

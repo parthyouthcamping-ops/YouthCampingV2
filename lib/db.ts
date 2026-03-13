@@ -95,6 +95,29 @@ export class YouthDB {
                     await sql`DELETE FROM quotations WHERE id = ${id}`;
                     return { success: true };
                 }
+
+                if (action === 'getLandingSection') {
+                    const res = await sql`SELECT data FROM landing_sections WHERE id = ${id}`;
+                    return res[0]?.data || null;
+                }
+
+                if (action === 'setLandingSection') {
+                    const jsonString = JSON.stringify(data);
+                    await sql`
+                        INSERT INTO landing_sections (id, data, updated_at)
+                        VALUES (${id}, ${jsonString}::jsonb, ${new Date().toISOString()})
+                        ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at
+                    `;
+                    return { success: true };
+                }
+
+                if (action === 'getAllLandingSections') {
+                    const res = await sql`SELECT id, data FROM landing_sections`;
+                    return res.reduce((acc: any, curr: any) => {
+                        acc[curr.id] = curr.data;
+                        return acc;
+                    }, {});
+                }
             } catch (error) {
                 console.error("[DB SERVER ERROR]", error);
                 throw error;
@@ -147,6 +170,18 @@ export class YouthDB {
 
     async delete(id: string): Promise<void> {
         await this.callApi('delete', { id });
+    }
+
+    async getLandingSection(id: string): Promise<any> {
+        return await this.callApi('getLandingSection', { id });
+    }
+
+    async setLandingSection(id: string, data: any): Promise<void> {
+        await this.callApi('setLandingSection', { id, data });
+    }
+
+    async getAllLandingSections(): Promise<any> {
+        return await this.callApi('getAllLandingSections');
     }
 }
 

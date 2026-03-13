@@ -63,3 +63,14 @@ export const saveBrandSettings = async (settings: BrandSettings) => {
         window.dispatchEvent(new Event("brandSettingsUpdated"));
     }
 };
+
+export const getLandingContent = async (): Promise<any> => {
+    return await db.getAllLandingSections();
+};
+
+export const updateLandingSection = async (id: string, data: any) => {
+    await db.setLandingSection(id, data);
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("landingContentUpdated"));
+    }
+};
