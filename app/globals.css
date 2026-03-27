@@ -7,8 +7,9 @@
     --foreground: 26, 26, 26;
 
     /* Core Brand Colors */
-    --primary-color: #FF4D00;
-    --primary: 255, 77, 0;
+    --primary-color: #D4541A;
+    --primary: 212, 84, 26;
+    --secondary: 27, 42, 74;
 
     /* Soft Light Tint: #FFEDD5 */
     --primary-light: 255, 237, 213;

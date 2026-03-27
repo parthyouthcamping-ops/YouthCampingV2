@@ -12,6 +12,7 @@ const config: Config = {
                 primary: "rgb(var(--primary))",
                 "primary-light": "rgb(var(--primary-light))",
                 "primary-deep": "rgb(var(--primary-deep))",
+                secondary: "rgb(var(--secondary))",
             },
             fontFamily: {
                 sans: ["var(--font-montserrat)", "sans-serif"],

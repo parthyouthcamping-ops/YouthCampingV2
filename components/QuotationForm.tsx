@@ -25,6 +25,9 @@ import {
     EyeOff,
     FileText,
     Layers,
+    Plane,
+    Train,
+    Luggage,
     Edit,
     MessageCircle as WhatsAppIcon,
     FileDown
@@ -50,13 +53,13 @@ interface QuotationFormProps {
 export default function QuotationForm({ initialData, isEdit = false }: QuotationFormProps) {
     const router = useRouter();
     const { brand } = useBrandSettings();
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState<number>(1);
     const [isSaving, setIsSaving] = useState(false);
     const [uploadingField, setUploadingField] = useState<string | null>(null);
     const [clients, setClients] = useState<any[]>([]);
     const [isLoadingClients, setIsLoadingClients] = useState(false);
     const activeUploads = useState(0); // [count, setCount]
-    const totalSteps = 6;
+    const totalSteps = 7;
 
     const CLOUDINARY_CLOUD = "dltxunwku";
     const CLOUDINARY_PRESET = "quotation_upload";
@@ -82,6 +85,17 @@ export default function QuotationForm({ initialData, isEdit = false }: Quotation
         includes: ["Hotel Stay", "All Transfers", "Sightseeing", "Breakfast & Dinner"],
         exclusions: ["Airfare", "Visa Fees", "Personal Expenses", "Travel Insurance"],
         expert: { name: "", whatsapp: "" },
+        transport: { 
+            type: null, 
+            flightDetails: { 
+                departure: { 
+                    airlineName: "", 
+                    flightNumber: "", 
+                    departureDate: "", 
+                    segments: [] 
+                } 
+            } 
+        },
         ...initialData
     });
 
@@ -314,6 +328,7 @@ ${designation}`;
         { id: "trip", label: "Trip Info" },
         { id: "branding", label: "Branding" },
         { id: "hotels", label: "Hotels" },
+        { id: "transport", label: "Transport" },
         { id: "itinerary", label: "Itinerary" },
         { id: "extra", label: "Extra Sections" },
         { id: "pricing", label: "Final Details" },
@@ -332,7 +347,7 @@ ${designation}`;
 
                 <div className="flex items-center gap-4">
                     <div className="flex gap-2 mr-6">
-                        {[1, 2, 3, 4, 5, 6].map(s => (
+                        {[1, 2, 3, 4, 5, 6, 7].map(s => (
                             <div
                                 key={s}
                                 className={`w-8 h-1.5 rounded-full transition-all duration-500 ${s <= step ? 'bg-primary' : 'bg-gray-100'}`}
@@ -654,158 +669,571 @@ ${designation}`;
                                 </div>
                             </div>
                         )}
-
                         {step === 3 && (
                             <div className="flex flex-col gap-10">
-                                <div className="flex flex-col gap-10">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                                                <HotelIcon size={28} />
-                                            </div>
-                                            <div>
-                                                <h2 className="text-3xl font-black text-gray-900 tracking-tight">Hotel Options</h2>
-                                                <p className="text-gray-500 font-medium">Standard & Luxury Stays.</p>
-                                            </div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                            <HotelIcon size={28} />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Hotel Options</h2>
+                                            <p className="text-gray-500 font-medium">Standard & Luxury Stays.</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div className="space-y-8">
-                                        <div className="flex items-center justify-between border-l-4 border-gray-200 pl-6">
-                                            <h3 className="text-xl font-semibold">Standard Hotels</h3>
-                                            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => {
-                                                const h: Hotel = { id: uuidv4(), name: "", location: "", rating: 3, description: "", roomType: "", photos: [] };
-                                                setFormData({ ...formData, lowLevelHotels: [...(formData.lowLevelHotels || []), h] });
-                                            }}>+ Add Standard Stay</Button>
-                                        </div>
+                                <div className="space-y-8">
+                                    <div className="flex items-center justify-between border-l-4 border-gray-200 pl-6">
+                                        <h3 className="text-xl font-semibold">Standard Hotels</h3>
+                                        <Button variant="outline" size="sm" type="button" className="rounded-xl" onClick={() => {
+                                            const h: Hotel = { id: uuidv4(), name: "", location: "", rating: 3, description: "", roomType: "", photos: [] };
+                                            setFormData({ ...formData, lowLevelHotels: [...(formData.lowLevelHotels || []), h] });
+                                        }}>+ Add Standard Stay</Button>
+                                    </div>
 
-                                        <div className="flex flex-col gap-8">
-                                            {formData.lowLevelHotels?.map((hotel, index) => (
-                                                <div key={hotel.id} className="p-8 bg-gray-50/50 rounded-[2rem] border-2 border-transparent hover:border-gray-100 transition-all">
-                                                    <div className="flex justify-between mb-6">
-                                                        <h4 className="font-semibold text-gray-400">Standard Hotel {index + 1}</h4>
-                                                        <Button variant="ghost" onClick={() => {
-                                                            const newH = [...(formData.lowLevelHotels || [])];
-                                                            newH.splice(index, 1);
-                                                            setFormData({ ...formData, lowLevelHotels: newH });
-                                                        }} className="text-red-400"><Trash2 size={16} /></Button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                                        <div className="md:col-span-2 space-y-4">
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <Input id={`lowHotelName_${index}`} name={`lowHotelName_${index}`} placeholder="Hotel Name" value={hotel.name} onChange={(e) => {
-                                                                    const newH = [...(formData.lowLevelHotels || [])];
-                                                                    newH[index].name = e.target.value;
-                                                                    setFormData({ ...formData, lowLevelHotels: newH });
-                                                                }} />
-                                                                <Input id={`lowHotelLocation_${index}`} name={`lowHotelLocation_${index}`} placeholder="Location" value={hotel.location} onChange={(e) => {
-                                                                    const newH = [...(formData.lowLevelHotels || [])];
-                                                                    newH[index].location = e.target.value;
-                                                                    setFormData({ ...formData, lowLevelHotels: newH });
-                                                                }} />
-                                                                <Input id={`lowHotelRoomType_${index}`} name={`lowHotelRoomType_${index}`} placeholder="Room Type" value={hotel.roomType} onChange={(e) => {
-                                                                    const newH = [...(formData.lowLevelHotels || [])];
-                                                                    newH[index].roomType = e.target.value;
-                                                                    setFormData({ ...formData, lowLevelHotels: newH });
-                                                                }} />
-                                                            </div>
-                                                            <Textarea id={`lowHotelDesc_${index}`} name={`lowHotelDesc_${index}`} placeholder="Description..." value={hotel.description} onChange={(e) => {
+                                    <div className="flex flex-col gap-8">
+                                        {formData.lowLevelHotels?.map((hotel, index) => (
+                                            <div key={hotel.id} className="p-8 bg-gray-50/50 rounded-[2rem] border-2 border-transparent hover:border-gray-100 transition-all">
+                                                <div className="flex justify-between mb-6">
+                                                    <h4 className="font-semibold text-gray-400">Standard Hotel {index + 1}</h4>
+                                                    <Button variant="ghost" type="button" onClick={() => {
+                                                        const newH = [...(formData.lowLevelHotels || [])];
+                                                        newH.splice(index, 1);
+                                                        setFormData({ ...formData, lowLevelHotels: newH });
+                                                    }} className="text-red-400"><Trash2 size={16} /></Button>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                                    <div className="md:col-span-2 space-y-4">
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <Input id={`lowHotelName_${index}`} name={`lowHotelName_${index}`} placeholder="Hotel Name" value={hotel.name} onChange={(e) => {
                                                                 const newH = [...(formData.lowLevelHotels || [])];
-                                                                newH[index].description = e.target.value;
+                                                                newH[index].name = e.target.value;
+                                                                setFormData({ ...formData, lowLevelHotels: newH });
+                                                            }} />
+                                                            <Input id={`lowHotelLocation_${index}`} name={`lowHotelLocation_${index}`} placeholder="Location" value={hotel.location} onChange={(e) => {
+                                                                const newH = [...(formData.lowLevelHotels || [])];
+                                                                newH[index].location = e.target.value;
+                                                                setFormData({ ...formData, lowLevelHotels: newH });
+                                                            }} />
+                                                            <Input id={`lowHotelRoomType_${index}`} name={`lowHotelRoomType_${index}`} placeholder="Room Type" value={hotel.roomType} onChange={(e) => {
+                                                                const newH = [...(formData.lowLevelHotels || [])];
+                                                                newH[index].roomType = e.target.value;
                                                                 setFormData({ ...formData, lowLevelHotels: newH });
                                                             }} />
                                                         </div>
-                                                        <div className="grid grid-cols-2 gap-2 h-fit">
-                                                            {hotel.photos?.map((p, i) => (
-                                                                <div key={i} className="aspect-square rounded-xl overflow-hidden relative">
-                                                                    <img src={p} className="w-full h-full object-cover" />
-                                                                </div>
-                                                            ))}
-                                                            <label htmlFor={`lowLevelHotel_${index}`} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
-                                                                {uploadingField === `lowLevelHotels_${index}` ? (
-                                                                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                                                                ) : (
-                                                                    <Plus size={16} />
-                                                                )}
-                                                            </label>
-                                                            <input id={`lowLevelHotel_${index}`} name={`lowLevelHotel_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'lowLevelHotels', true, index)} />
-                                                        </div>
+                                                        <Textarea id={`lowHotelDesc_${index}`} name={`lowHotelDesc_${index}`} placeholder="Description..." value={hotel.description} onChange={(e) => {
+                                                            const newH = [...(formData.lowLevelHotels || [])];
+                                                            newH[index].description = e.target.value;
+                                                            setFormData({ ...formData, lowLevelHotels: newH });
+                                                        }} />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-2 h-fit">
+                                                        {hotel.photos?.map((p, i) => (
+                                                            <div key={i} className="aspect-square rounded-xl overflow-hidden relative">
+                                                                <img src={p} className="w-full h-full object-cover" />
+                                                            </div>
+                                                        ))}
+                                                        <label htmlFor={`lowLevelHotel_${index}`} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
+                                                            {uploadingField === `lowLevelHotels_${index}` ? (
+                                                                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                            ) : (
+                                                                <Plus size={16} />
+                                                            )}
+                                                        </label>
+                                                        <input id={`lowLevelHotel_${index}`} name={`lowLevelHotel_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'lowLevelHotels', true, index)} />
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-8 pt-10 border-t border-gray-50">
+                                    <div className="flex items-center justify-between border-l-4 border-primary pl-6">
+                                        <h3 className="text-xl font-semibold">Luxury Hotels</h3>
+                                        <Button variant="outline" size="sm" type="button" className="rounded-xl" onClick={() => {
+                                            const h: Hotel = { id: uuidv4(), name: "", location: "", rating: 5, description: "", roomType: "", photos: [] };
+                                            setFormData({ ...formData, highLevelHotels: [...(formData.highLevelHotels || []), h] });
+                                        }}>+ Add Luxury Stay</Button>
                                     </div>
 
-                                    <div className="space-y-8 pt-10 border-t border-gray-50">
-                                        <div className="flex items-center justify-between border-l-4 border-primary pl-6">
-                                            <h3 className="text-xl font-semibold">Luxury Hotels</h3>
-                                            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => {
-                                                const h: Hotel = { id: uuidv4(), name: "", location: "", rating: 5, description: "", roomType: "", photos: [] };
-                                                setFormData({ ...formData, highLevelHotels: [...(formData.highLevelHotels || []), h] });
-                                            }}>+ Add Luxury Stay</Button>
-                                        </div>
-
-                                        <div className="flex flex-col gap-8">
-                                            {formData.highLevelHotels?.map((hotel, index) => (
-                                                <div key={hotel.id} className="p-8 bg-primary/[0.02] rounded-[2rem] border-2 border-transparent hover:border-primary/5 transition-all">
-                                                    <div className="flex justify-between mb-6">
-                                                        <h4 className="font-semibold text-primary opacity-50">Luxury Hotel {index + 1}</h4>
-                                                        <Button variant="ghost" onClick={() => {
-                                                            const newH = [...(formData.highLevelHotels || [])];
-                                                            newH.splice(index, 1);
-                                                            setFormData({ ...formData, highLevelHotels: newH });
-                                                        }} className="text-red-400"><Trash2 size={16} /></Button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                                        <div className="md:col-span-2 space-y-4">
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <Input id={`highHotelName_${index}`} name={`highHotelName_${index}`} placeholder="Hotel Name" value={hotel.name} onChange={(e) => {
-                                                                    const newH = [...(formData.highLevelHotels || [])];
-                                                                    newH[index].name = e.target.value;
-                                                                    setFormData({ ...formData, highLevelHotels: newH });
-                                                                }} />
-                                                                <Input id={`highHotelLocation_${index}`} name={`highHotelLocation_${index}`} placeholder="Location" value={hotel.location} onChange={(e) => {
-                                                                    const newH = [...(formData.highLevelHotels || [])];
-                                                                    newH[index].location = e.target.value;
-                                                                    setFormData({ ...formData, highLevelHotels: newH });
-                                                                }} />
-                                                                <Input id={`highHotelRoomType_${index}`} name={`highHotelRoomType_${index}`} placeholder="Room Type" value={hotel.roomType} onChange={(e) => {
-                                                                    const newH = [...(formData.highLevelHotels || [])];
-                                                                    newH[index].roomType = e.target.value;
-                                                                    setFormData({ ...formData, highLevelHotels: newH });
-                                                                }} />
-                                                            </div>
-                                                            <Textarea id={`highHotelDesc_${index}`} name={`highHotelDesc_${index}`} placeholder="Description..." value={hotel.description} onChange={(e) => {
+                                    <div className="flex flex-col gap-8">
+                                        {formData.highLevelHotels?.map((hotel, index) => (
+                                            <div key={hotel.id} className="p-8 bg-primary/[0.02] rounded-[2rem] border-2 border-transparent hover:border-primary/5 transition-all">
+                                                <div className="flex justify-between mb-6">
+                                                    <h4 className="font-semibold text-primary opacity-50">Luxury Hotel {index + 1}</h4>
+                                                    <Button variant="ghost" type="button" onClick={() => {
+                                                        const newH = [...(formData.highLevelHotels || [])];
+                                                        newH.splice(index, 1);
+                                                        setFormData({ ...formData, highLevelHotels: newH });
+                                                    }} className="text-red-400"><Trash2 size={16} /></Button>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                                    <div className="md:col-span-2 space-y-4">
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <Input id={`highHotelName_${index}`} name={`highHotelName_${index}`} placeholder="Hotel Name" value={hotel.name} onChange={(e) => {
                                                                 const newH = [...(formData.highLevelHotels || [])];
-                                                                newH[index].description = e.target.value;
+                                                                newH[index].name = e.target.value;
+                                                                setFormData({ ...formData, highLevelHotels: newH });
+                                                            }} />
+                                                            <Input id={`highHotelLocation_${index}`} name={`highHotelLocation_${index}`} placeholder="Location" value={hotel.location} onChange={(e) => {
+                                                                const newH = [...(formData.highLevelHotels || [])];
+                                                                newH[index].location = e.target.value;
+                                                                setFormData({ ...formData, highLevelHotels: newH });
+                                                            }} />
+                                                            <Input id={`highHotelRoomType_${index}`} name={`highHotelRoomType_${index}`} placeholder="Room Type" value={hotel.roomType} onChange={(e) => {
+                                                                const newH = [...(formData.highLevelHotels || [])];
+                                                                newH[index].roomType = e.target.value;
                                                                 setFormData({ ...formData, highLevelHotels: newH });
                                                             }} />
                                                         </div>
-                                                        <div className="grid grid-cols-2 gap-2 h-fit">
-                                                            {hotel.photos?.map((p, i) => (
-                                                                <div key={i} className="aspect-square rounded-xl overflow-hidden relative">
-                                                                    <img src={p} className="w-full h-full object-cover" />
-                                                                </div>
-                                                            ))}
-                                                            <label htmlFor={`highLevelHotel_${index}`} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
-                                                                {uploadingField === `highLevelHotels_${index}` ? (
-                                                                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                                                                ) : (
-                                                                    <Plus size={16} />
-                                                                )}
-                                                            </label>
-                                                            <input id={`highLevelHotel_${index}`} name={`highLevelHotel_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'highLevelHotels', true, index)} />
-                                                        </div>
+                                                        <Textarea id={`highHotelDesc_${index}`} name={`highHotelDesc_${index}`} placeholder="Description..." value={hotel.description} onChange={(e) => {
+                                                            const newH = [...(formData.highLevelHotels || [])];
+                                                            newH[index].description = e.target.value;
+                                                            setFormData({ ...formData, highLevelHotels: newH });
+                                                        }} />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-2 h-fit">
+                                                        {hotel.photos?.map((p, i) => (
+                                                            <div key={i} className="aspect-square rounded-xl overflow-hidden relative">
+                                                                <img src={p} className="w-full h-full object-cover" />
+                                                            </div>
+                                                        ))}
+                                                        <label htmlFor={`highLevelHotel_${index}`} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer bg-white">
+                                                            {uploadingField === `highLevelHotels_${index}` ? (
+                                                                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                            ) : (
+                                                                <Plus size={16} />
+                                                            )}
+                                                        </label>
+                                                        <input id={`highLevelHotel_${index}`} name={`highLevelHotel_${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'highLevelHotels', true, index)} />
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
                         )}
-
                         {step === 4 && (
+                            <div className="flex flex-col gap-10">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                        <Plane size={28} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-3xl font-black text-gray-900 tracking-tight">Transport Details</h2>
+                                        <p className="text-gray-500 font-medium">Add airline-style itinerary for flights or trains.</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4 p-2 bg-gray-50 rounded-2xl w-fit">
+                                    {[
+                                        { id: null, label: "None", icon: EyeOff },
+                                        { id: 'flight', label: "Flight", icon: Plane },
+                                        { id: 'train', label: "Train", icon: Train }
+                                    ].map(type => (
+                                        <button
+                                            key={String(type.id)}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, transport: { ...formData.transport, type: type.id as any } })}
+                                            className={`flex items-center gap-3 px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all ${formData.transport?.type === type.id ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:bg-gray-100'}`}
+                                        >
+                                            <type.icon size={16} />
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {formData.transport?.type === 'flight' && (
+                                    <div className="space-y-12">
+                                        <div className="bg-gray-50/50 p-8 rounded-[2rem] border-2 border-transparent hover:border-gray-100 transition-all space-y-8">
+                                            <h3 className="text-xl font-black text-secondary flex items-center gap-3 uppercase tracking-wider">
+                                                <Plane size={24} className="text-primary" /> Departure Journey
+                                            </h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                <div className="space-y-2">
+                                                    <Label>Airline Name</Label>
+                                                    <Input 
+                                                        placeholder="e.g. Indigo" 
+                                                        value={formData.transport?.flightDetails?.departure?.airlineName || ""} 
+                                                        onChange={(e) => {
+                                                            const transport = { ...formData.transport! };
+                                                            if (!transport.flightDetails) transport.flightDetails = { departure: { airlineName: "", flightNumber: "", departureDate: "", segments: [] } };
+                                                            transport.flightDetails.departure.airlineName = e.target.value;
+                                                            setFormData({ ...formData, transport });
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Flight Number</Label>
+                                                    <Input 
+                                                        placeholder="e.g. 6E-201" 
+                                                        value={formData.transport?.flightDetails?.departure?.flightNumber || ""} 
+                                                        onChange={(e) => {
+                                                            const transport = { ...formData.transport! };
+                                                            if (!transport.flightDetails) transport.flightDetails = { departure: { airlineName: "", flightNumber: "", departureDate: "", segments: [] } };
+                                                            transport.flightDetails.departure.flightNumber = e.target.value;
+                                                            setFormData({ ...formData, transport });
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Date</Label>
+                                                    <Input 
+                                                        type="date"
+                                                        value={formData.transport?.flightDetails?.departure?.departureDate || ""} 
+                                                        onChange={(e) => {
+                                                            const transport = { ...formData.transport! };
+                                                            if (!transport.flightDetails) transport.flightDetails = { departure: { airlineName: "", flightNumber: "", departureDate: "", segments: [] } };
+                                                            transport.flightDetails.departure.departureDate = e.target.value;
+                                                            setFormData({ ...formData, transport });
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                <div className="flex items-center justify-between">
+                                                    <Label className="text-xs font-black uppercase tracking-widest text-gray-400">Route Segments</Label>
+                                                    <Button variant="outline" size="sm" type="button" className="rounded-xl text-[10px]" onClick={() => {
+                                                        const transport = { ...formData.transport! };
+                                                        if (!transport.flightDetails) transport.flightDetails = { departure: { airlineName: "", flightNumber: "", departureDate: "", segments: [] } };
+                                                        if (!transport.flightDetails.departure.segments) transport.flightDetails.departure.segments = [];
+                                                        transport.flightDetails.departure.segments.push({ 
+                                                            from: { city: "", time: "" }, 
+                                                            to: { city: "", time: "", isNextDay: false } 
+                                                        });
+                                                        setFormData({ ...formData, transport });
+                                                    }}>+ Add Segment</Button>
+                                                </div>
+                                                
+                                                {formData.transport?.flightDetails?.departure?.segments?.map((seg, sIdx) => (
+                                                    <div key={sIdx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px]">From</Label>
+                                                                <Input placeholder="City" value={seg.from.city} onChange={(e) => {
+                                                                    const transport = { ...formData.transport! };
+                                                                    transport.flightDetails!.departure.segments[sIdx].from.city = e.target.value;
+                                                                    setFormData({ ...formData, transport });
+                                                                }} />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px]">Dep. Time</Label>
+                                                                <Input type="time" value={seg.from.time} onChange={(e) => {
+                                                                    const transport = { ...formData.transport! };
+                                                                    transport.flightDetails!.departure.segments[sIdx].from.time = e.target.value;
+                                                                    setFormData({ ...formData, transport });
+                                                                }} />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px]">To</Label>
+                                                                <Input placeholder="City" value={seg.to.city} onChange={(e) => {
+                                                                    const transport = { ...formData.transport! };
+                                                                    transport.flightDetails!.departure.segments[sIdx].to.city = e.target.value;
+                                                                    setFormData({ ...formData, transport });
+                                                                }} />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px]">Arr. Time</Label>
+                                                                <Input type="time" value={seg.to.time} onChange={(e) => {
+                                                                    const transport = { ...formData.transport! };
+                                                                    transport.flightDetails!.departure.segments[sIdx].to.time = e.target.value;
+                                                                    setFormData({ ...formData, transport });
+                                                                }} />
+                                                            </div>
+                                                            <div className="flex items-center gap-2 pb-3">
+                                                                <input type="checkbox" id={`seg_nextday_${sIdx}`} checked={seg.to.isNextDay} onChange={(e) => {
+                                                                    const transport = { ...formData.transport! };
+                                                                    transport.flightDetails!.departure.segments[sIdx].to.isNextDay = e.target.checked;
+                                                                    setFormData({ ...formData, transport });
+                                                                }} />
+                                                                <Label htmlFor={`seg_nextday_${sIdx}`} className="text-[10px]">Next Day</Label>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-4">
+                                                            <Input placeholder="Layover info (Optional)" className="text-xs h-8" value={seg.layoverAfter || ""} onChange={(e) => {
+                                                                const transport = { ...formData.transport! };
+                                                                transport.flightDetails!.departure.segments[sIdx].layoverAfter = e.target.value;
+                                                                setFormData({ ...formData, transport });
+                                                            }} />
+                                                            <Button variant="ghost" type="button" size="sm" onClick={() => {
+                                                                const transport = { ...formData.transport! };
+                                                                transport.flightDetails!.departure.segments.splice(sIdx, 1);
+                                                                setFormData({ ...formData, transport });
+                                                            }} className="text-red-400"><Trash2 size={14} /></Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-8 pt-4 border-t border-gray-100">
+                                                <div className="space-y-2">
+                                                    <Label className="flex items-center gap-2"><Luggage size={14} /> Cabin Baggage</Label>
+                                                    <Input placeholder="e.g. 7kg" value={formData.transport?.flightDetails?.departure?.baggage?.cabin || ""} onChange={(e) => {
+                                                        const transport = { ...formData.transport! };
+                                                        if (!transport.flightDetails!.departure.baggage) transport.flightDetails!.departure.baggage = { cabin: "", checkIn: "" };
+                                                        transport.flightDetails!.departure.baggage.cabin = e.target.value;
+                                                        setFormData({ ...formData, transport });
+                                                    }} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="flex items-center gap-2"><Luggage size={14} /> Check-in Baggage</Label>
+                                                    <Input placeholder="e.g. 15kg" value={formData.transport?.flightDetails?.departure?.baggage?.checkIn || ""} onChange={(e) => {
+                                                        const transport = { ...formData.transport! };
+                                                        if (!transport.flightDetails!.departure.baggage) transport.flightDetails!.departure.baggage = { cabin: "", checkIn: "" };
+                                                        transport.flightDetails!.departure.baggage.checkIn = e.target.value;
+                                                        setFormData({ ...formData, transport });
+                                                    }} />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4">
+                                            <Button 
+                                                variant="outline" 
+                                                type="button"
+                                                onClick={() => {
+                                                    const transport = { ...formData.transport! };
+                                                    if (transport.flightDetails?.return) {
+                                                        delete transport.flightDetails.return;
+                                                    } else {
+                                                        if (!transport.flightDetails) transport.flightDetails = { departure: { airlineName: "", flightNumber: "", departureDate: "", segments: [] } };
+                                                        transport.flightDetails.return = { airlineName: "", flightNumber: "", departureDate: "", segments: [] };
+                                                    }
+                                                    setFormData({ ...formData, transport });
+                                                }}
+                                                className="rounded-2xl"
+                                            >
+                                                {formData.transport?.flightDetails?.return ? "Remove Return Journey" : "Add Return Journey"}
+                                            </Button>
+                                        </div>
+
+                                        {formData.transport?.flightDetails?.return && (
+                                            <div className="bg-gray-50/50 p-8 rounded-[2rem] border-2 border-transparent hover:border-gray-100 transition-all space-y-8 animate-in fade-in slide-in-from-top-4">
+                                                <h3 className="text-xl font-black text-secondary flex items-center gap-3 uppercase tracking-wider">
+                                                    <Plane size={24} className="text-primary rotate-180" /> Return Journey
+                                                </h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <div className="space-y-2">
+                                                        <Label>Airline Name</Label>
+                                                        <Input placeholder="e.g. Indigo" value={formData.transport.flightDetails.return.airlineName || ""} onChange={(e) => {
+                                                            const transport = { ...formData.transport! };
+                                                            transport.flightDetails!.return!.airlineName = e.target.value;
+                                                            setFormData({ ...formData, transport });
+                                                        }} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Flight Number</Label>
+                                                        <Input placeholder="e.g. 6E-202" value={formData.transport.flightDetails.return.flightNumber || ""} onChange={(e) => {
+                                                            const transport = { ...formData.transport! };
+                                                            transport.flightDetails!.return!.flightNumber = e.target.value;
+                                                            setFormData({ ...formData, transport });
+                                                        }} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Date</Label>
+                                                        <Input type="date" value={formData.transport.flightDetails.return.departureDate || ""} onChange={(e) => {
+                                                            const transport = { ...formData.transport! };
+                                                            transport.flightDetails!.return!.departureDate = e.target.value;
+                                                            setFormData({ ...formData, transport });
+                                                        }} />
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="space-y-6">
+                                                    <div className="flex items-center justify-between">
+                                                        <Label className="text-xs font-black uppercase tracking-widest text-gray-400">Route Segments</Label>
+                                                        <Button variant="outline" size="sm" type="button" className="rounded-xl text-[10px]" onClick={() => {
+                                                            const transport = { ...formData.transport! };
+                                                            if (!transport.flightDetails!.return!.segments) transport.flightDetails!.return!.segments = [];
+                                                            transport.flightDetails!.return!.segments.push({ 
+                                                                from: { city: "", time: "" }, 
+                                                                to: { city: "", time: "" } 
+                                                            });
+                                                            setFormData({ ...formData, transport });
+                                                        }}>+ Add Segment</Button>
+                                                    </div>
+                                                    
+                                                    {formData.transport.flightDetails.return.segments.map((seg, sIdx) => (
+                                                        <div key={sIdx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                                                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-[10px]">From</Label>
+                                                                    <Input placeholder="City" value={seg.from.city} onChange={(e) => {
+                                                                        const transport = { ...formData.transport! };
+                                                                        transport.flightDetails!.return!.segments[sIdx].from.city = e.target.value;
+                                                                        setFormData({ ...formData, transport });
+                                                                    }} />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-[10px]">Dep. Time</Label>
+                                                                    <Input type="time" value={seg.from.time} onChange={(e) => {
+                                                                        const transport = { ...formData.transport! };
+                                                                        transport.flightDetails!.return!.segments[sIdx].from.time = e.target.value;
+                                                                        setFormData({ ...formData, transport });
+                                                                    }} />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-[10px]">To</Label>
+                                                                    <Input placeholder="City" value={seg.to.city} onChange={(e) => {
+                                                                        const transport = { ...formData.transport! };
+                                                                        transport.flightDetails!.return!.segments[sIdx].to.city = e.target.value;
+                                                                        setFormData({ ...formData, transport });
+                                                                    }} />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-[10px]">Arr. Time</Label>
+                                                                    <Input type="time" value={seg.to.time} onChange={(e) => {
+                                                                        const transport = { ...formData.transport! };
+                                                                        transport.flightDetails!.return!.segments[sIdx].to.time = e.target.value;
+                                                                        setFormData({ ...formData, transport });
+                                                                    }} />
+                                                                </div>
+                                                                <div className="flex items-center gap-2 pb-3">
+                                                                    <input type="checkbox" id={`ret_seg_nextday_${sIdx}`} checked={seg.to.isNextDay} onChange={(e) => {
+                                                                        const transport = { ...formData.transport! };
+                                                                        transport.flightDetails!.return!.segments[sIdx].to.isNextDay = e.target.checked;
+                                                                        setFormData({ ...formData, transport });
+                                                                    }} />
+                                                                    <Label htmlFor={`ret_seg_nextday_${sIdx}`} className="text-[10px]">Next Day</Label>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-4">
+                                                                <Input placeholder="Layover info (Optional)" className="text-xs h-8" value={seg.layoverAfter || ""} onChange={(e) => {
+                                                                    const transport = { ...formData.transport! };
+                                                                    transport.flightDetails!.return!.segments[sIdx].layoverAfter = e.target.value;
+                                                                    setFormData({ ...formData, transport });
+                                                                }} />
+                                                                <Button variant="ghost" type="button" size="sm" onClick={() => {
+                                                                    const transport = { ...formData.transport! };
+                                                                    transport.flightDetails!.return!.segments.splice(sIdx, 1);
+                                                                    setFormData({ ...formData, transport });
+                                                                }} className="text-red-400"><Trash2 size={14} /></Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-8 pt-4 border-t border-gray-100">
+                                                    <div className="space-y-2">
+                                                        <Label className="flex items-center gap-2"><Luggage size={14} /> Cabin Baggage</Label>
+                                                        <Input placeholder="e.g. 7kg" value={formData.transport?.flightDetails?.return?.baggage?.cabin || ""} onChange={(e) => {
+                                                            const transport = { ...formData.transport! };
+                                                            if (!transport.flightDetails!.return!.baggage) transport.flightDetails!.return!.baggage = { cabin: "", checkIn: "" };
+                                                            transport.flightDetails!.return!.baggage.cabin = e.target.value;
+                                                            setFormData({ ...formData, transport });
+                                                        }} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label className="flex items-center gap-2"><Luggage size={14} /> Check-in Baggage</Label>
+                                                        <Input placeholder="e.g. 15kg" value={formData.transport?.flightDetails?.return?.baggage?.checkIn || ""} onChange={(e) => {
+                                                            const transport = { ...formData.transport! };
+                                                            if (!transport.flightDetails!.return!.baggage) transport.flightDetails!.return!.baggage = { cabin: "", checkIn: "" };
+                                                            transport.flightDetails!.return!.baggage.checkIn = e.target.value;
+                                                            setFormData({ ...formData, transport });
+                                                        }} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {formData.transport?.type === 'train' && (
+                                    <div className="bg-gray-50/50 p-8 rounded-[2rem] border-2 border-transparent hover:border-gray-100 transition-all space-y-8">
+                                        <h3 className="text-xl font-black text-secondary flex items-center gap-3 uppercase tracking-wider">
+                                            <Train size={24} className="text-primary" /> Train Journey
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="space-y-2">
+                                                <Label>Train Name</Label>
+                                                <Input placeholder="e.g. Rajdhani Express" value={formData.transport?.trainDetails?.trainName || ""} onChange={(e) => {
+                                                    const transport = { ...formData.transport! };
+                                                    if (!transport.trainDetails) transport.trainDetails = { trainName: "", trainNumber: "", coachClass: "", departureDate: "", from: { city: "", time: "" }, to: { city: "", time: "" } };
+                                                    transport.trainDetails.trainName = e.target.value;
+                                                    setFormData({ ...formData, transport });
+                                                }} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Train Number</Label>
+                                                <Input placeholder="e.g. 12951" value={formData.transport?.trainDetails?.trainNumber || ""} onChange={(e) => {
+                                                    const transport = { ...formData.transport! };
+                                                    if (!transport.trainDetails) transport.trainDetails = { trainName: "", trainNumber: "", coachClass: "", departureDate: "", from: { city: "", time: "" }, to: { city: "", time: "" } };
+                                                    transport.trainDetails.trainNumber = e.target.value;
+                                                    setFormData({ ...formData, transport });
+                                                }} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Coach Class</Label>
+                                                <Input placeholder="e.g. 3AC" value={formData.transport?.trainDetails?.coachClass || ""} onChange={(e) => {
+                                                    const transport = { ...formData.transport! };
+                                                    if (!transport.trainDetails) transport.trainDetails = { trainName: "", trainNumber: "", coachClass: "", departureDate: "", from: { city: "", time: "" }, to: { city: "", time: "" } };
+                                                    transport.trainDetails.coachClass = e.target.value;
+                                                    setFormData({ ...formData, transport });
+                                                }} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Departure Date</Label>
+                                                <Input type="date" value={formData.transport?.trainDetails?.departureDate || ""} onChange={(e) => {
+                                                    const transport = { ...formData.transport! };
+                                                    if (!transport.trainDetails) transport.trainDetails = { trainName: "", trainNumber: "", coachClass: "", departureDate: "", from: { city: "", time: "" }, to: { city: "", time: "" } };
+                                                    transport.trainDetails.departureDate = e.target.value;
+                                                    setFormData({ ...formData, transport });
+                                                }} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>From (Station/City)</Label>
+                                                <div className="flex gap-2">
+                                                    <Input placeholder="Station" className="flex-1" value={formData.transport?.trainDetails?.from?.city || ""} onChange={(e) => {
+                                                        const transport = { ...formData.transport! };
+                                                        if (!transport.trainDetails!.from) transport.trainDetails!.from = { city: "", time: "" };
+                                                        transport.trainDetails!.from.city = e.target.value;
+                                                        setFormData({ ...formData, transport });
+                                                    }} />
+                                                    <Input type="time" className="w-24" value={formData.transport?.trainDetails?.from?.time || ""} onChange={(e) => {
+                                                        const transport = { ...formData.transport! };
+                                                        if (!transport.trainDetails!.from) transport.trainDetails!.from = { city: "", time: "" };
+                                                        transport.trainDetails!.from.time = e.target.value;
+                                                        setFormData({ ...formData, transport });
+                                                    }} />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>To (Station/City)</Label>
+                                                <div className="flex gap-2">
+                                                    <Input placeholder="Station" className="flex-1" value={formData.transport?.trainDetails?.to?.city || ""} onChange={(e) => {
+                                                        const transport = { ...formData.transport! };
+                                                        if (!transport.trainDetails!.to) transport.trainDetails!.to = { city: "", time: "", isNextDay: false };
+                                                        transport.trainDetails!.to.city = e.target.value;
+                                                        setFormData({ ...formData, transport });
+                                                    }} />
+                                                    <Input type="time" className="w-24" value={formData.transport?.trainDetails?.to?.time || ""} onChange={(e) => {
+                                                        const transport = { ...formData.transport! };
+                                                        if (!transport.trainDetails!.to) transport.trainDetails!.to = { city: "", time: "", isNextDay: false };
+                                                        transport.trainDetails!.to.time = e.target.value;
+                                                        setFormData({ ...formData, transport });
+                                                    }} />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <input type="checkbox" id="train_nextday" checked={formData.transport?.trainDetails?.to?.isNextDay || false} onChange={(e) => {
+                                                        const transport = { ...formData.transport! };
+                                                        if (!transport.trainDetails!.to) transport.trainDetails!.to = { city: "", time: "", isNextDay: false };
+                                                        transport.trainDetails!.to.isNextDay = e.target.checked;
+                                                        setFormData({ ...formData, transport });
+                                                    }} />
+                                                    <Label htmlFor="train_nextday" className="text-[10px] cursor-pointer">Arrival is Next Day</Label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {step === 5 && (
                             <div className="flex flex-col gap-10">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-4">
@@ -962,7 +1390,7 @@ ${designation}`;
                             </div>
                         )}
 
-                        {step === 5 && (
+                        {step === 6 && (
                             <div className="flex flex-col gap-10">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-4">
@@ -1050,7 +1478,7 @@ ${designation}`;
                             </div>
                         )}
 
-                        {step === 6 && (
+                        {step === 7 && (
                             <div className="flex flex-col gap-10">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">

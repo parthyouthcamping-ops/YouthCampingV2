@@ -133,6 +133,31 @@ const styles = StyleSheet.create({
         fontSize: 8,
         color: '#adb5bd',
         textTransform: 'uppercase',
+    },
+    listContainer: {
+        flexDirection: 'row',
+        gap: 20,
+        marginTop: 20,
+        marginBottom: 20,
+    },
+    listColumn: {
+        flex: 1,
+        backgroundColor: '#f8f9fa',
+        padding: 20,
+        borderRadius: 8,
+    },
+    listTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#0a192f',
+        marginBottom: 10,
+        textTransform: 'uppercase',
+    },
+    listItem: {
+        fontSize: 10,
+        color: '#495057',
+        marginBottom: 5,
+        lineHeight: 1.4,
     }
 });
 
@@ -200,6 +225,41 @@ export const QuotePDF = ({ q, selectedTier }: { q: Quotation; selectedTier: 'sta
                 </View>
 
                 {/* Footer */}
+                <View style={styles.footer}>
+                    <Text style={styles.footerText}>© 2026 YouthCamping luxury travel. One Trip at a Time.</Text>
+                </View>
+            </Page>
+
+            {/* Inclusions & Exclusions Page */}
+            <Page size="A4" style={styles.page}>
+                <View style={styles.header}>
+                    <Text style={styles.logo}>YOUTHCAMPING</Text>
+                    <View style={{ textAlign: 'right' }}>
+                        <Text style={{ fontSize: 8, color: '#6c757d' }}>INCLUDED & EXCLUDED</Text>
+                        <Text style={{ fontSize: 10, fontWeight: 'bold' }}>#{q.slug.toUpperCase()}</Text>
+                    </View>
+                </View>
+
+                <View>
+                    <Text style={styles.sectionTitle}>The Details</Text>
+                    <Text style={styles.destinationName}>Package Breakdown</Text>
+                </View>
+
+                <View style={styles.listContainer}>
+                    <View style={styles.listColumn}>
+                        <Text style={styles.listTitle}>Included</Text>
+                        {q.includes?.map((inc, i) => (
+                            <Text key={`inc-${i}`} style={styles.listItem}>• {inc}</Text>
+                        ))}
+                    </View>
+                    <View style={styles.listColumn}>
+                        <Text style={styles.listTitle}>Excluded</Text>
+                        {q.exclusions?.map((exc, i) => (
+                            <Text key={`exc-${i}`} style={styles.listItem}>• {exc}</Text>
+                        ))}
+                    </View>
+                </View>
+
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>© 2026 YouthCamping luxury travel. One Trip at a Time.</Text>
                 </View>

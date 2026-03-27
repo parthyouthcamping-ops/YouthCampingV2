@@ -28,6 +28,49 @@ export type CustomSection = {
     isVisible: boolean;
 };
 
+export type TransportLeg = {
+    city: string;
+    time: string;
+    terminal?: string;
+    date?: string;
+    isNextDay?: boolean;
+};
+
+export type FlightSegment = {
+    from: TransportLeg;
+    to: TransportLeg;
+    layoverAfter?: string; // e.g. "4h 55m Layover in Bengaluru"
+};
+
+export type FlightDetails = {
+    airlineName: string;
+    flightNumber: string;
+    departureDate: string;
+    segments: FlightSegment[];
+    baggage?: {
+        cabin: string;
+        checkIn: string;
+    };
+};
+
+export type TrainDetails = {
+    trainName: string;
+    trainNumber: string;
+    coachClass: string;
+    departureDate: string;
+    from: TransportLeg;
+    to: TransportLeg;
+};
+
+export type TransportData = {
+    type: 'flight' | 'train' | null;
+    flightDetails?: {
+        departure: FlightDetails;
+        return?: FlightDetails;
+    };
+    trainDetails?: TrainDetails;
+};
+
 export type Quotation = {
     id: string;
     clientId?: string;
@@ -41,6 +84,7 @@ export type Quotation = {
     };
     duration: string; // e.g. "5 Days • 4 Nights"
     transportOption: string;
+    transport?: TransportData;
     roomSharing: "Single" | "Double" | "Triple" | "Quad";
     packagePrice: number; // For backward compatibility or legacy display
     lowLevelPrice: number; // Price per pax for low level option
@@ -124,6 +168,29 @@ export type LandingGalleryItem = {
     url: string;
     type: 'image' | 'video';
     caption?: string;
+};
+
+export type TripDay = {
+    id: string;
+    day: number;
+    title: string;
+    description: string;
+    activities: string[];
+    photos: string[];
+};
+
+export type Trip = {
+    id: string; // The tripId, e.g., YCPARTH01
+    title: string;
+    description: string;
+    price: number;
+    duration: string; // e.g., "5 Days / 4 Nights"
+    inclusions: string[];
+    exclusions: string[];
+    itinerary: TripDay[];
+    images: string[];
+    createdAt: string;
+    updatedAt: string;
 };
 
 export type LandingContent = {

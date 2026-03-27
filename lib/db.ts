@@ -188,6 +188,30 @@ export class YouthDB {
                     `;
                     return { success: true };
                 }
+                if (action === 'getTrips') {
+                    const res = await sql`SELECT data FROM trips ORDER BY updated_at DESC`;
+                    return res.map((r: any) => r.data);
+                }
+
+                if (action === 'getTrip') {
+                    const res = await sql`SELECT data FROM trips WHERE id = ${id}`;
+                    return res[0]?.data || null;
+                }
+
+                if (action === 'setTrip') {
+                    const jsonString = JSON.stringify(data);
+                    await sql`
+                        INSERT INTO trips (id, data, updated_at, created_at)
+                        VALUES (${id}, ${jsonString}::jsonb, ${new Date().toISOString()}, ${data.createdAt || new Date().toISOString()})
+                        ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at
+                    `;
+                    return { success: true };
+                }
+
+                if (action === 'deleteTrip') {
+                    await sql`DELETE FROM trips WHERE id = ${id}`;
+                    return { success: true };
+                }
             } catch (error) {
                 console.error("[DB SERVER ERROR]", error);
                 throw error;
@@ -299,6 +323,22 @@ export class YouthDB {
             status: booking.status,
             data: booking.data || {}
         });
+    }
+
+    async getTrips(): Promise<any[]> {
+        return await this.callApi('getTrips');
+    }
+
+    async getTrip(id: string): Promise<any> {
+        return await this.callApi('getTrip', { id });
+    }
+
+    async setTrip(trip: any): Promise<void> {
+        await this.callApi('setTrip', { id: trip.id, data: trip });
+    }
+
+    async deleteTrip(id: string): Promise<void> {
+        await this.callApi('deleteTrip', { id });
     }
 }
 

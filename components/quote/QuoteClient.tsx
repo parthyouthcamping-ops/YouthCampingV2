@@ -24,16 +24,68 @@ import {
     Instagram,
     Globe,
     Phone,
+    ChevronDown,
+    ChevronUp,
+    Hotel,
     MessageCircle as WhatsAppIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dynamic from 'next/dynamic';
 import { QuotePDF } from "@/components/quote/QuotePDF";
+import { TransportSection } from "@/components/quote/TransportSection";
 
 const PDFDownloadLink = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink), {
     ssr: false,
     loading: () => <p className="text-[10px] font-black uppercase text-gray-400 animate-pulse">Initializing PDF Engine...</p>
 });
+
+function AccordionDay({ day, isOpen, toggle }: { day: any; isOpen: boolean; toggle: () => void }) {
+    return (
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all cursor-pointer hover:border-primary/30" onClick={toggle}>
+            <div className="flex justify-between items-center">
+                <div className="flex items-center gap-6">
+                    <span className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-xl font-black">
+                        D{day.day}
+                    </span>
+                    <div className="flex-1 pr-6">
+                        <h3 className="text-xl font-bold text-gray-900">{day.title}</h3>
+                        {!isOpen && <p className="text-sm text-gray-500 mt-1 line-clamp-1">{day.description}</p>}
+                    </div>
+                </div>
+                <div className="text-primary bg-primary/5 p-2 rounded-full">
+                    {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </div>
+            </div>
+            
+            {isOpen && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="pt-8 mt-6 border-t border-gray-100 space-y-8">
+                    <p className="text-gray-600 leading-relaxed text-sm">
+                        {day.description}
+                    </p>
+                    {day.activities && day.activities.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {day.activities.map((act: string, i: number) => act && (
+                                <div key={i} className="flex items-start gap-3">
+                                    <CheckCircle2 size={18} className="text-primary mt-0.5" />
+                                    <span className="text-sm font-semibold text-gray-700">{act}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {day.photos && day.photos.length > 0 && (
+                        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
+                            {day.photos.map((photo: string, i: number) => (
+                                <div key={i} className="w-72 aspect-video flex-shrink-0 snap-center rounded-2xl overflow-hidden relative">
+                                    <Image src={photo} alt="" fill className="object-cover" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </motion.div>
+            )}
+        </div>
+    );
+}
 
 interface QuoteClientProps {
     q: Quotation;
@@ -43,6 +95,7 @@ interface QuoteClientProps {
 
 export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
     const [selectedTier, setSelectedTier] = useState<'standard' | 'luxury'>('standard');
+    const [openDayId, setOpenDayId] = useState<string | null>(q.itinerary?.[0]?.id || null);
     const { scrollY } = useScroll();
     const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
 
@@ -107,7 +160,7 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                             <Users size={28} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Traveller Name</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Prepared For</p>
                             <p className="text-lg font-black text-gray-900 leading-none">{q.clientName}</p>
                         </div>
                     </div>
@@ -117,18 +170,18 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Travel Dates</p>
-                            <p className="text-lg font-black text-gray-900 leading-tight">
-                                {q.travelDates?.from ? new Date(q.travelDates.from).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : "TBA"} - {q.travelDates?.to ? new Date(q.travelDates.to).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ""}
+                            <p className="text-sm font-black text-gray-900 leading-tight">
+                                {q.travelDates?.from ? new Date(q.travelDates.from).toLocaleDateString('en-GB') : "TBA"}
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-6 md:border-r border-gray-100 pr-6 last:border-0 last:pr-0">
                         <div className="w-14 h-14 bg-primary/5 rounded-[1.4rem] flex items-center justify-center text-primary flex-shrink-0">
-                            <Sparkles size={28} />
+                            <Users size={28} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Duration</p>
-                            <p className="text-lg font-black text-gray-900 leading-none">{q.duration}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Travelers</p>
+                            <p className="text-lg font-black text-gray-900 leading-none">{q.pax} Adults</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-6">
@@ -136,9 +189,9 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                             <Star size={28} fill="currentColor" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Preferred Investment</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">Starting Price</p>
                             <p className="text-xl font-black text-primary leading-none">
-                                ₹{(selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice).toLocaleString()}
+                                ₹{q.lowLevelPrice.toLocaleString()} <span className="text-xs text-gray-500 font-semibold">/ pax</span>
                             </p>
                         </div>
                     </div>
@@ -177,6 +230,11 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
             </section>
 
 
+            {/* Transport Details Section */}
+            {q.transport && q.transport.type && (
+                <TransportSection transport={q.transport} />
+            )}
+
             {/* Itinerary */}
             <section className="py-40">
                 <div className="container mx-auto px-6">
@@ -185,143 +243,153 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                         <div className="h-2 w-24 bg-primary mx-auto rounded-full" />
                     </div>
 
-                    <div className="flex flex-col relative gap-40">
-                        {/* Timeline Line */}
-                        <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/5 via-primary/20 to-primary/5 -translate-x-1/2 hidden lg:block" />
-
-                        {q.itinerary?.map((day, idx) => (
-                            <motion.div
+                    <div className="max-w-4xl mx-auto flex flex-col gap-6">
+                        {q.itinerary?.map((day) => (
+                            <AccordionDay
                                 key={day.id}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true, margin: "-100px" }}
-                                className={`flex flex-col lg:flex-row gap-20 lg:gap-32 items-center relative ${idx % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}
-                            >
-                                {/* Timeline Dot */}
-                                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-2xl z-10 hidden lg:block" />
-
-                                <div className="flex-1 space-y-12">
-                                    <div className={`flex flex-col ${idx % 2 !== 0 ? 'lg:items-end lg:text-right' : 'lg:items-start'} gap-6`}>
-                                        <div className="flex items-center gap-6">
-                                            <span className="w-20 h-20 rounded-[2rem] bg-gray-900 text-white flex items-center justify-center text-2xl font-black italic shadow-2xl">
-                                                0{day.day}
-                                            </span>
-                                            <h3 className="text-4xl md:text-5xl font-black tracking-tighter text-gray-900">{day.title}</h3>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-10">
-                                        <p className={`text-xl text-gray-500 font-medium leading-relaxed italic ${idx % 2 !== 0 ? 'lg:text-right' : ''}`}>
-                                            {day.description}
-                                        </p>
-
-                                        <div className="space-y-12 flex flex-col">
-                                            <div className="space-y-6 w-full">
-                                                <div className={`flex items-center gap-4 ${idx % 2 !== 0 ? 'lg:justify-end' : ''}`}>
-                                                    <div className="h-px bg-primary/20 flex-1" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Daily Curated Highlights</span>
-                                                </div>
-                                                <ul className={`grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 ${idx % 2 !== 0 ? 'lg:justify-items-end' : ''}`}>
-                                                    {day.activities?.map((act, i) => (
-                                                        act && (
-                                                            <li key={i} className={`flex items-start gap-4 group text-gray-800 ${idx % 2 !== 0 ? 'lg:flex-row-reverse text-right' : ''}`}>
-                                                                <CheckCircle2 size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                                                                <span className="text-base font-bold transition-colors">{act}</span>
-                                                            </li>
-                                                        )
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 w-full relative">
-                                    <div className="absolute -inset-6 bg-primary/5 rounded-[4rem] blur-3xl -z-10 opacity-60" />
-                                    <ImageSlider images={day.photos} className="shadow-3xl rounded-[3.5rem] overflow-hidden border-8 border-white" />
-                                </div>
-                            </motion.div>
+                                day={day}
+                                isOpen={openDayId === day.id}
+                                toggle={() => setOpenDayId(openDayId === day.id ? null : day.id)}
+                            />
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Pricing Card Section */}
-            <section id="pricing" className="py-40 bg-[#0a192f] text-white">
-                <div className="container mx-auto px-6">
-                    <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-20 items-stretch">
-                        <div className="flex-1 space-y-16">
-                            <div className="space-y-6">
-                                <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs">Investment in Memories</h2>
-                                <h3 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-none">
-                                    Elite <br />Value
-                                </h3>
-                            </div>
+            {/* Hotel Section */}
+            {((selectedTier === 'standard' && (q.lowLevelHotels?.length > 0 || q.hotels?.length > 0)) || 
+              (selectedTier === 'luxury' && (q.highLevelHotels?.length > 0 || q.hotels?.length > 0))) && (
+                <section className="py-24 bg-white relative z-10">
+                    <div className="container mx-auto px-6">
+                        <div className="text-center mb-16 space-y-4">
+                            <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs">Where You'll Stay</h2>
+                            <h3 className="text-4xl md:text-5xl font-black tracking-tighter text-gray-900 uppercase">Accommodations</h3>
+                            <div className="h-1 w-16 bg-primary mx-auto rounded-full mt-6" />
+                        </div>
+                        
+                        <div className="max-w-5xl mx-auto grid grid-cols-1 gap-8">
+                            {(selectedTier === 'standard' ? (q.lowLevelHotels?.length > 0 ? q.lowLevelHotels : q.hotels) : (q.highLevelHotels?.length > 0 ? q.highLevelHotels : q.hotels))?.map((hotel, i) => (
+                                <div key={i} className="bg-white rounded-[2.5rem] p-6 shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col md:flex-row gap-8 items-center group hover:border-primary/20 transition-all">
+                                    <div className="w-full md:w-80 aspect-video rounded-3xl overflow-hidden relative flex-shrink-0 border-4 border-gray-50">
+                                        <Image src={hotel.photos?.[0] || "https://images.unsplash.com/photo-1542314831-c6a4d27d6682?q=80&w=2000&auto=format&fit=crop"} fill alt={hotel.name} className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                                    </div>
+                                    <div className="flex-1 space-y-5 w-full text-center md:text-left">
+                                        <div className="flex items-center justify-center md:justify-start gap-1 text-primary">
+                                            {Array(hotel.rating || 4).fill(0).map((_, i) => <Star key={`star-${i}`} size={16} fill="currentColor" />)}
+                                        </div>
+                                        <h4 className="text-3xl font-black text-gray-900 tracking-tight">{hotel.name}</h4>
+                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                                            <span className="flex items-center gap-1.5 bg-gray-50 px-4 py-2 rounded-xl"><MapPin size={14} className="text-primary" /> {hotel.location}</span>
+                                            <span className="flex items-center gap-1.5 bg-gray-50 px-4 py-2 rounded-xl"><Hotel size={14} className="text-primary" /> {hotel.roomType}</span>
+                                        </div>
+                                        {hotel.description && <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed max-w-2xl font-medium">{hotel.description}</p>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
-                            <div className="grid md:grid-cols-2 gap-10">
-                                <div className="space-y-8 bg-white/5 p-12 rounded-[3.5rem] border border-white/5 backdrop-blur-xl">
-                                    <div className="flex items-center gap-4 text-primary">
-                                        <CheckCircle2 size={28} />
-                                        <h4 className="text-xl font-black uppercase tracking-widest text-white">Elite Inclusions</h4>
-                                    </div>
-                                    <ul className="space-y-6">
-                                        {q.includes?.slice(0, 6).map((inc, i) => (
-                                            <li key={i} className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-3">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                                {inc}
-                                            </li>
-                                        ))}
-                                    </ul>
+            {/* Inclusions & Exclusions Section */}
+            <section className="py-24 bg-gray-50/50">
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-16 space-y-4">
+                        <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs">The Details</h2>
+                        <h3 className="text-4xl md:text-5xl font-black tracking-tighter text-secondary uppercase">Included & Excluded</h3>
+                    </div>
+                    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">
+                        {/* Inclusions */}
+                        <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-gray-100 flex flex-col gap-8">
+                            <div className="flex items-center gap-4 text-emerald-500">
+                                <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center">
+                                    <CheckCircle2 size={28} />
                                 </div>
-                                <div className="space-y-10 flex flex-col justify-center">
-                                    <div className="flex bg-white/5 p-2 rounded-[2rem] border border-white/10 no-print">
-                                        <button
-                                            onClick={() => setSelectedTier('standard')}
-                                            className={`flex-1 px-8 py-5 rounded-[1.5rem] flex flex-col items-center transition-all ${selectedTier === 'standard' ? 'bg-primary text-white shadow-2xl' : 'text-gray-400'}`}
-                                        >
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Option 1</span>
-                                            <span className="text-xs font-bold mt-1">₹{q.lowLevelPrice.toLocaleString()}</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setSelectedTier('luxury')}
-                                            className={`flex-1 px-8 py-5 rounded-[1.5rem] flex flex-col items-center transition-all ${selectedTier === 'luxury' ? 'bg-primary text-white shadow-2xl' : 'text-gray-400'}`}
-                                        >
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Option 2</span>
-                                            <span className="text-xs font-bold mt-1">₹{q.highLevelPrice.toLocaleString()}</span>
-                                        </button>
-                                    </div>
-                                    <div className="text-center lg:text-left">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] mb-4">Pricing Validity</p>
-                                        <p className="text-white/40 font-bold uppercase tracking-widest text-[10px]">Your price is locked for the next 72 hours only.</p>
-                                    </div>
-                                </div>
+                                <h4 className="text-2xl font-black text-secondary tracking-tight uppercase">Included</h4>
                             </div>
+                            <ul className="space-y-4">
+                                {q.includes?.map((inc, i) => (
+                                    <li key={`inc-${i}`} className="flex items-start gap-4">
+                                        <CheckCircle2 size={20} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+                                        <span className="text-sm font-bold text-gray-600 leading-relaxed">{inc}</span>
+                                    </li>
+                                ))}
+                                {(!q.includes || q.includes.length === 0) && (
+                                    <p className="text-sm font-bold text-gray-400 italic">No inclusions specified.</p>
+                                )}
+                            </ul>
                         </div>
 
-                        <div className="lg:w-[450px] bg-white text-gray-900 rounded-[4rem] p-16 flex flex-col items-center justify-center text-center shadow-3xl overflow-hidden relative group">
-                            <div className="absolute top-0 left-0 w-full h-3 bg-primary" />
-                            <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.5em] mb-12 italic">Total Trip Value</h4>
+                        {/* Exclusions */}
+                        <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-gray-100 flex flex-col gap-8">
+                            <div className="flex items-center gap-4 text-red-500">
+                                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center">
+                                    <XCircle size={28} />
+                                </div>
+                                <h4 className="text-2xl font-black text-secondary tracking-tight uppercase">Excluded</h4>
+                            </div>
+                            <ul className="space-y-4">
+                                {q.exclusions?.map((exc, i) => (
+                                    <li key={`exc-${i}`} className="flex items-start gap-4">
+                                        <XCircle size={20} className="text-red-400 mt-0.5 flex-shrink-0" />
+                                        <span className="text-sm font-bold text-gray-600 leading-relaxed">{exc}</span>
+                                    </li>
+                                ))}
+                                {(!q.exclusions || q.exclusions.length === 0) && (
+                                    <p className="text-sm font-bold text-gray-400 italic">No exclusions specified.</p>
+                                )}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                            <div className="space-y-4 mb-20">
-                                <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Per Traveler</p>
-                                <p className="text-7xl font-black tracking-tighter text-gray-900">
-                                    ₹{(selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice).toLocaleString()}
-                                </p>
+            {/* Price Summary Section */}
+            <section id="pricing" className="py-32 bg-gray-50/50">
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-16 space-y-4">
+                        <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs">Final Step</h2>
+                        <h3 className="text-4xl md:text-5xl font-black tracking-tighter text-secondary uppercase">Price Summary</h3>
+                    </div>
+
+                    <div className="max-w-xl mx-auto">
+                        <div className="bg-white rounded-[3rem] p-12 md:p-16 shadow-2xl border border-gray-100 flex flex-col items-center text-center relative overflow-hidden group hover:border-primary/20 transition-all">
+                            <div className="absolute top-0 left-0 w-full h-3 bg-primary" />
+                            
+                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.4em] mb-6">Starting Price</h4>
+                            <div className="flex items-end justify-center gap-3 mb-10">
+                                <span className="text-6xl md:text-7xl font-black tracking-tighter text-gray-900">₹{q.lowLevelPrice.toLocaleString()}</span>
+                                <span className="text-lg font-bold text-gray-500 mb-2 border-l-2 border-gray-200 pl-3 leading-tight flex flex-col text-left">
+                                    <span>per</span>
+                                    <span>adult</span>
+                                </span>
                             </div>
 
-                            <div className="w-full h-px bg-gray-100 mb-20" />
+                            <div className="w-full h-px bg-gray-100 mb-10" />
 
-                            <div className="space-y-4 w-full mb-20">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Full Group Package</p>
-                                <p className="text-4xl font-black tracking-tight text-primary">
-                                    ₹{((selectedTier === 'standard' ? q.lowLevelPrice : q.highLevelPrice) * q.pax).toLocaleString()}
-                                </p>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{q.pax} Premium Slots</p>
+                            <div className="space-y-4 w-full mb-12">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-2">Select Your Package</p>
+                                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-2 rounded-[2.5rem]">
+                                    <button
+                                        onClick={() => setSelectedTier('standard')}
+                                        className={`py-5 rounded-[2rem] flex flex-col items-center transition-all ${selectedTier === 'standard' ? 'bg-white text-gray-900 shadow-md ring-1 ring-gray-100' : 'text-gray-500 hover:bg-white/50'}`}
+                                    >
+                                        <span className="text-[10px] uppercase tracking-widest font-black">Standard</span>
+                                        <span className="text-sm font-bold mt-1">₹{q.lowLevelPrice.toLocaleString()}</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedTier('luxury')}
+                                        className={`py-5 rounded-[2rem] flex flex-col items-center transition-all ${selectedTier === 'luxury' ? 'bg-white text-gray-900 shadow-md ring-1 ring-gray-100' : 'text-gray-500 hover:bg-white/50'}`}
+                                    >
+                                        <span className="text-[10px] uppercase tracking-widest font-black">Luxury</span>
+                                        <span className="text-sm font-bold mt-1">₹{q.highLevelPrice.toLocaleString()}</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <Button
                                 onClick={() => window.open(`https://wa.me/${q.expert.whatsapp}?text=${whatsappMessage}`, '_blank')}
-                                className="w-full py-10 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-105 mb-4"
+                                className="w-full py-8 text-sm md:text-lg bg-[#25D366] hover:bg-[#128C7E] text-white rounded-[2rem] font-black uppercase tracking-widest shadow-xl shadow-[#25D366]/20 transition-all hover:scale-[1.02] mb-6"
                             >
                                 <WhatsAppIcon className="mr-3" size={24} />
                                 Book This Trip
@@ -330,16 +398,11 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                             <div className="w-full no-print">
                                 <PDFDownloadLink 
                                     document={<QuotePDF q={q} selectedTier={selectedTier} />} 
-                                    fileName={`YouthCamping_Quote_${q.destination.replace(/\s/g, '_')}.pdf`}
+                                    fileName={`${q.slug}_youthcamping_proposal.pdf`}
                                 >
                                     {({ loading }) => (
-                                        <Button
-                                            variant="outline"
-                                            disabled={loading}
-                                            className="w-full py-8 border-2 border-gray-100 text-gray-400 hover:text-primary hover:border-primary/20 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all"
-                                        >
-                                            <FileDown size={18} />
-                                            {loading ? 'Generating...' : 'Download PDF Quote'}
+                                        <Button variant="outline" disabled={loading} className="w-full py-8 text-[10px] font-black uppercase tracking-[0.2em] border-2 rounded-2xl transition-all hover:bg-gray-50 text-gray-400 hover:text-primary">
+                                            {loading ? 'Preparing PDF...' : <><FileDown size={18} className="mr-2" /> Download Proposal</>}
                                         </Button>
                                     )}
                                 </PDFDownloadLink>

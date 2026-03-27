@@ -20,11 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         const path = window.location.pathname;
-        if (path === "/admin/pipeline") setActiveTab("pipeline");
-        else if (path === "/admin/branding") setActiveTab("branding");
-        else if (path === "/admin/landing") setActiveTab("landing");
-        else if (path === "/admin/clients") setActiveTab("clients");
-        else if (path === "/admin/bookings") setActiveTab("bookings");
+        if (path === "/admin/branding") setActiveTab("branding");
         else if (path === "/admin/new") setActiveTab("new");
         else setActiveTab("all");
     }, []);
@@ -42,12 +38,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     const sidebarLinks = [
-        { name: "All Quotes", icon: LayoutDashboard, id: "all", href: "/admin" },
-        { name: "Sales Pipeline", icon: Calendar, id: "pipeline", href: "/admin/pipeline" },
-        { name: "Client CRM", icon: Users, id: "clients", href: "/admin/clients" },
-        { name: "Bookings", icon: CreditCard, id: "bookings", href: "/admin/bookings" },
-        { name: "Create New", icon: Plus, id: "new", href: "/admin/new" },
-        { name: "Landing CMS", icon: Hotel, id: "landing", href: "/admin/landing" },
+        { name: "Proposals", icon: FileText, id: "all", href: "/admin" },
+        { name: "Create Proposal", icon: Plus, id: "new", href: "/admin/new" },
+        { name: "Trips (Packages)", icon: Calendar, id: "trips", href: "/admin/trips" },
         { name: "Branding", icon: Palette, id: "branding", href: "/admin/branding" },
     ];
 
