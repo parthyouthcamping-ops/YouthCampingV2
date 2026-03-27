@@ -124,47 +124,51 @@ export default function TripDetail({ trip }: TripDetailProps) {
                                 </div>
                             </div>
                             <ul className="grid grid-cols-1 gap-5">
-                                {trip.inclusions.map((item, i) => (
-                                    <motion.li 
-                                        key={i} 
-                                        initial={{ opacity: 0, x: -10 }} 
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.1 }}
-                                        className="flex items-start gap-4 p-4 bg-emerald-50/30 rounded-2xl border border-transparent hover:border-emerald-100 transition-all"
-                                    >
-                                        <CheckCircle2 size={20} className="text-emerald-500 mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm font-bold text-gray-700 leading-relaxed">{item}</span>
-                                    </motion.li>
-                                ))}
-                            </ul>
-                        </div>
+                                {trip.inclusions && trip.inclusions.length > 0 ? trip.inclusions.map((item, i) => item && (
+                                     <motion.li 
+                                         key={i} 
+                                         initial={{ opacity: 0, x: -10 }} 
+                                         whileInView={{ opacity: 1, x: 0 }}
+                                         transition={{ delay: i * 0.1 }}
+                                         className="flex items-start gap-4 p-4 bg-emerald-50/30 rounded-2xl border border-transparent hover:border-emerald-100 transition-all"
+                                     >
+                                         <CheckCircle2 size={20} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+                                         <span className="text-sm font-bold text-gray-700 leading-relaxed">{item}</span>
+                                     </motion.li>
+                                 )) : (
+                                     <p className="text-sm font-bold text-gray-400 italic">No inclusions specified.</p>
+                                 )}
+                             </ul>
+                         </div>
 
-                        {/* ❌ Exclusions Section */}
-                        <div className="bg-white rounded-[2.5rem] p-12 shadow-xl border border-gray-100 group hover:border-red-100 transition-all">
-                            <div className="flex items-center gap-5 mb-10 text-red-500">
-                                <div className="w-16 h-16 bg-red-50 rounded-3xl flex items-center justify-center">
-                                    <XCircle size={32} />
-                                </div>
-                                <div>
-                                    <h4 className="text-2xl font-black text-gray-900 uppercase tracking-tight">❌ Exclusions</h4>
-                                    <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">Not included in package</p>
-                                </div>
-                            </div>
-                            <ul className="grid grid-cols-1 gap-5">
-                                {trip.exclusions.map((item, i) => (
-                                    <motion.li 
-                                        key={i} 
-                                        initial={{ opacity: 0, x: -10 }} 
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.1 }}
-                                        className="flex items-start gap-4 p-4 bg-red-50/30 rounded-2xl border border-transparent hover:border-red-100 transition-all"
-                                    >
-                                        <XCircle size={20} className="text-red-400 mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm font-bold text-gray-700 leading-relaxed">{item}</span>
-                                    </motion.li>
-                                ))}
-                            </ul>
-                        </div>
+                         {/* ❌ Exclusions Section */}
+                         <div className="bg-white rounded-[2.5rem] p-12 shadow-xl border border-gray-100 group hover:border-red-100 transition-all">
+                             <div className="flex items-center gap-5 mb-10 text-red-500">
+                                 <div className="w-16 h-16 bg-red-50 rounded-3xl flex items-center justify-center">
+                                     <XCircle size={32} />
+                                 </div>
+                                 <div>
+                                     <h4 className="text-2xl font-black text-gray-900 uppercase tracking-tight">❌ Exclusions</h4>
+                                     <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">Not included in package</p>
+                                 </div>
+                             </div>
+                             <ul className="grid grid-cols-1 gap-5">
+                                 {trip.exclusions && trip.exclusions.length > 0 ? trip.exclusions.map((item, i) => item && (
+                                     <motion.li 
+                                         key={i} 
+                                         initial={{ opacity: 0, x: -10 }} 
+                                         whileInView={{ opacity: 1, x: 0 }}
+                                         transition={{ delay: i * 0.1 }}
+                                         className="flex items-start gap-4 p-4 bg-red-50/30 rounded-2xl border border-transparent hover:border-red-100 transition-all"
+                                     >
+                                         <XCircle size={20} className="text-red-400 mt-0.5 flex-shrink-0" />
+                                         <span className="text-sm font-bold text-gray-700 leading-relaxed">{item}</span>
+                                     </motion.li>
+                                 )) : (
+                                     <p className="text-sm font-bold text-gray-400 italic">No exclusions specified.</p>
+                                 )}
+                             </ul>
+                         </div>
                     </div>
                 </div>
             </section>

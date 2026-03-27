@@ -30,14 +30,7 @@ import {
     MessageCircle as WhatsAppIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import dynamic from 'next/dynamic';
-import { QuotePDF } from "@/components/quote/QuotePDF";
 import { TransportSection } from "@/components/quote/TransportSection";
-
-const PDFDownloadLink = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink), {
-    ssr: false,
-    loading: () => <p className="text-[10px] font-black uppercase text-gray-400 animate-pulse">Initializing PDF Engine...</p>
-});
 
 function AccordionDay({ day, isOpen, toggle }: { day: any; isOpen: boolean; toggle: () => void }) {
     return (
@@ -395,18 +388,7 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                                 Book This Trip
                             </Button>
 
-                            <div className="w-full no-print">
-                                <PDFDownloadLink 
-                                    document={<QuotePDF q={q} selectedTier={selectedTier} />} 
-                                    fileName={`${q.slug}_youthcamping_proposal.pdf`}
-                                >
-                                    {({ loading }) => (
-                                        <Button variant="outline" disabled={loading} className="w-full py-8 text-[10px] font-black uppercase tracking-[0.2em] border-2 rounded-2xl transition-all hover:bg-gray-50 text-gray-400 hover:text-primary">
-                                            {loading ? 'Preparing PDF...' : <><FileDown size={18} className="mr-2" /> Download Proposal</>}
-                                        </Button>
-                                    )}
-                                </PDFDownloadLink>
-                            </div>
+                            {/* PDF Download removed */}
                         </div>
                     </div>
                 </div>
