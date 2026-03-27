@@ -19,7 +19,6 @@ import {
     Map,
     Compass,
     ShieldCheck,
-    FileDown,
     MessageCircle,
     Instagram,
     Globe,
@@ -93,6 +92,9 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
     const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
 
     const quoteUrl = typeof window !== 'undefined' ? window.location.href : "";
+
+    const expertWhatsapp = q.expert?.whatsapp || "";
+    const expertName = q.expert?.name || "YouthCamping Expert";
 
     const whatsappMessage = encodeURIComponent(
         `Hi YouthCamping! I'd like to book my trip to ${q.destination}.\n\n` +
@@ -285,56 +287,117 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
             )}
 
             {/* Inclusions & Exclusions Section */}
-            <section className="py-24 bg-gray-50/50">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-16 space-y-4">
-                        <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs">The Details</h2>
-                        <h3 className="text-4xl md:text-5xl font-black tracking-tighter text-secondary uppercase">Included & Excluded</h3>
-                    </div>
-                    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">
-                        {/* Inclusions */}
-                        <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-gray-100 flex flex-col gap-8">
-                            <div className="flex items-center gap-4 text-emerald-500">
-                                <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center">
-                                    <CheckCircle2 size={28} />
-                                </div>
-                                <h4 className="text-2xl font-black text-secondary tracking-tight uppercase">Included</h4>
-                            </div>
-                            <ul className="space-y-4">
-                                {q.includes?.map((inc, i) => (
-                                    <li key={`inc-${i}`} className="flex items-start gap-4">
-                                        <CheckCircle2 size={20} className="text-emerald-500 mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm font-bold text-gray-600 leading-relaxed">{inc}</span>
-                                    </li>
-                                ))}
-                                {(!q.includes || q.includes.length === 0) && (
-                                    <p className="text-sm font-bold text-gray-400 italic">No inclusions specified.</p>
-                                )}
-                            </ul>
-                        </div>
+            <section id="details" className="py-32 bg-gray-50/50 relative overflow-hidden">
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                <div className="absolute top-1/2 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[120px] -translate-x-1/2" />
+                <div className="absolute top-1/2 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-[120px] translate-x-1/2" />
 
-                        {/* Exclusions */}
-                        <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-gray-100 flex flex-col gap-8">
-                            <div className="flex items-center gap-4 text-red-500">
-                                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center">
-                                    <XCircle size={28} />
+                <div className="container mx-auto px-6 relative z-10">
+                    <div className="flex flex-col items-center text-center mb-24 space-y-6">
+                        <h2 className="text-primary font-black uppercase tracking-[0.5em] text-[10px] md:text-xs">The Fine Print</h2>
+                        <h3 className="text-4xl md:text-7xl font-black tracking-tighter text-secondary uppercase leading-none">
+                            Package Contents
+                        </h3>
+                        <div className="h-2 w-32 bg-primary rounded-full" />
+                    </div>
+
+                    <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16">
+                        {/* ✅ INCLUSIONS CARD */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="bg-white rounded-[3rem] p-8 md:p-14 shadow-2xl shadow-emerald-900/5 border border-emerald-50 relative overflow-hidden group hover:border-emerald-200 transition-all"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform" />
+                            
+                            <div className="flex items-center gap-6 mb-12">
+                                <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-500 shadow-inner group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
+                                    <CheckCircle2 size={36} />
                                 </div>
-                                <h4 className="text-2xl font-black text-secondary tracking-tight uppercase">Excluded</h4>
+                                <div>
+                                    <h4 className="text-3xl font-black text-secondary uppercase tracking-tight">✅ Inclusions</h4>
+                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-1">Everything We Provide</p>
+                                </div>
                             </div>
-                            <ul className="space-y-4">
-                                {q.exclusions?.map((exc, i) => (
-                                    <li key={`exc-${i}`} className="flex items-start gap-4">
-                                        <XCircle size={20} className="text-red-400 mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm font-bold text-gray-600 leading-relaxed">{exc}</span>
-                                    </li>
-                                ))}
-                                {(!q.exclusions || q.exclusions.length === 0) && (
-                                    <p className="text-sm font-bold text-gray-400 italic">No exclusions specified.</p>
+
+                            <ul className="grid grid-cols-1 gap-6">
+                                {q.includes && q.includes.length > 0 ? q.includes.map((item, i) => (
+                                    <motion.li 
+                                        key={i}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="flex items-start gap-5 p-5 bg-emerald-50/20 rounded-2xl border border-emerald-50/50 hover:bg-emerald-50/40 hover:border-emerald-100 transition-all cursor-default"
+                                    >
+                                        <div className="mt-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-500/20">
+                                            <CheckCircle2 size={14} />
+                                        </div>
+                                        <span className="text-sm md:text-base font-bold text-gray-700 leading-relaxed uppercase tracking-tight italic">{item}</span>
+                                    </motion.li>
+                                )) : (
+                                    <div className="py-20 text-center flex flex-col items-center gap-4 border-2 border-dashed border-gray-100 rounded-3xl">
+                                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
+                                            <Sparkles size={32} />
+                                        </div>
+                                        <p className="text-gray-400 font-black uppercase tracking-widest text-[10px]">No Inclusions Listed</p>
+                                    </div>
                                 )}
                             </ul>
-                        </div>
+                        </motion.div>
+
+                        {/* ❌ EXCLUSIONS CARD */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="bg-white rounded-[3rem] p-8 md:p-14 shadow-2xl shadow-red-900/5 border border-red-50 relative overflow-hidden group hover:border-red-200 transition-all"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform" />
+
+                            <div className="flex items-center gap-6 mb-12">
+                                <div className="w-20 h-20 bg-red-50 rounded-[2rem] flex items-center justify-center text-red-500 shadow-inner group-hover:bg-red-500 group-hover:text-white transition-all duration-500">
+                                    <XCircle size={36} />
+                                </div>
+                                <div>
+                                    <h4 className="text-3xl font-black text-secondary uppercase tracking-tight">❌ Exclusions</h4>
+                                    <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mt-1">Not Included In Quote</p>
+                                </div>
+                            </div>
+
+                            <ul className="grid grid-cols-1 gap-6">
+                                {q.exclusions && q.exclusions.length > 0 ? q.exclusions.map((item, i) => (
+                                    <motion.li 
+                                        key={i}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="flex items-start gap-5 p-5 bg-red-50/20 rounded-2xl border border-red-50/50 hover:bg-red-50/40 hover:border-red-100 transition-all cursor-default"
+                                    >
+                                        <div className="mt-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-red-500/20">
+                                            <XCircle size={14} />
+                                        </div>
+                                        <span className="text-sm md:text-base font-bold text-gray-700 leading-relaxed uppercase tracking-tight italic">{item}</span>
+                                    </motion.li>
+                                )) : (
+                                    <div className="py-20 text-center flex flex-col items-center gap-4 border-2 border-dashed border-gray-100 rounded-3xl">
+                                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
+                                            <XCircle size={32} />
+                                        </div>
+                                        <p className="text-gray-400 font-black uppercase tracking-widest text-[10px]">No Exclusions Listed</p>
+                                    </div>
+                                )}
+                            </ul>
+                        </motion.div>
                     </div>
                 </div>
+                
+                <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
             </section>
 
             {/* Price Summary Section */}
@@ -381,7 +444,7 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
                             </div>
 
                             <Button
-                                onClick={() => window.open(`https://wa.me/${q.expert.whatsapp}?text=${whatsappMessage}`, '_blank')}
+                                onClick={() => window.open(`https://wa.me/${expertWhatsapp}?text=${whatsappMessage}`, '_blank')}
                                 className="w-full py-8 text-sm md:text-lg bg-[#25D366] hover:bg-[#128C7E] text-white rounded-[2rem] font-black uppercase tracking-widest shadow-xl shadow-[#25D366]/20 transition-all hover:scale-[1.02] mb-6"
                             >
                                 <WhatsAppIcon className="mr-3" size={24} />
@@ -404,8 +467,8 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
 
                         <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-white shadow-2xl flex-shrink-0">
                             <Image
-                                src={q.expert.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(q.expert.name || 'Expert')}&background=random`}
-                                alt={q.expert.name || "Expert"}
+                                src={q.expert?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(expertName)}&background=random`}
+                                alt={expertName}
                                 width={160}
                                 height={160}
                                 className="object-cover"
@@ -414,17 +477,17 @@ export default function QuoteClient({ q, brand, slug }: QuoteClientProps) {
 
                         <div className="space-y-6">
                             <div>
-                                <h4 className="text-3xl font-black text-gray-900 tracking-tight">{q.expert.name}</h4>
-                                <p className="text-primary font-bold uppercase tracking-widest text-[10px] mt-1 italic">{q.expert.designation || "Luxury Curator"}</p>
+                                <h4 className="text-3xl font-black text-gray-900 tracking-tight">{expertName}</h4>
+                                <p className="text-primary font-bold uppercase tracking-widest text-[10px] mt-1 italic">{q.expert?.designation || "Luxury Curator"}</p>
                             </div>
                             <p className="text-lg text-gray-500 font-medium leading-relaxed italic border-l-4 border-primary/20 pl-8">
                                 &quot;Designing journeys for travelers like you is a privilege. I've ensured this proposal reflects the high-end standards you deserve.&quot;
                             </p>
                             <Button
-                                onClick={() => window.open(`https://wa.me/${q.expert.whatsapp}?text=${whatsappMessage}`, '_blank')}
+                                onClick={() => window.open(`https://wa.me/${expertWhatsapp}?text=${whatsappMessage}`, '_blank')}
                                 className="bg-[#0a192f] hover:bg-black text-white px-10 py-6 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl"
                             >
-                                Chat with {q.expert.name.split(' ')[0]}
+                                Chat with {expertName.split(' ')[0]}
                             </Button>
                         </div>
                     </div>

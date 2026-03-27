@@ -29,14 +29,8 @@ import {
     Train,
     Luggage,
     Edit,
-    MessageCircle as WhatsAppIcon,
-    FileDown
+    MessageCircle as WhatsAppIcon
 } from "lucide-react";
-// PDF Imports removed
-// const PDFDownloadLink = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink), {
-//     ssr: false,
-//     loading: () => <p className="text-[10px] font-black uppercase text-gray-400 animate-pulse">Initializing PDF...</p>
-// });
 import { useBrandSettings } from "@/hooks/useBrandSettings";
 import { Quotation, Hotel, DayItinerary, CustomSection } from "@/lib/types";
 import { saveQuotation, generateSlug, getClients, addNotification } from "@/lib/store";

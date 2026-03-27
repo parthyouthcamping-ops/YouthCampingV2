@@ -102,75 +102,118 @@ export default function TripDetail({ trip }: TripDetailProps) {
                 </p>
             </section>
 
-            {/* Inclusions & Exclusions */}
-            <section className="py-24 bg-gray-50/50">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-16 space-y-4">
-                        <h2 className="text-primary font-black uppercase tracking-[0.4em] text-xs">Essential Details</h2>
-                        <h3 className="text-4xl md:text-5xl font-black tracking-tighter text-gray-900 uppercase">What's Inside?</h3>
-                        <div className="h-1.5 w-24 bg-primary mx-auto rounded-full mt-6" />
+            {/* Inclusions & Exclusions Section */}
+            <section id="details" className="py-32 bg-gray-50/50 relative overflow-hidden">
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                <div className="absolute top-1/2 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[120px] -translate-x-1/2" />
+                <div className="absolute top-1/2 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-[120px] translate-x-1/2" />
+
+                <div className="container mx-auto px-6 relative z-10">
+                    <div className="flex flex-col items-center text-center mb-24 space-y-6">
+                        <h2 className="text-primary font-black uppercase tracking-[0.5em] text-[10px] md:text-xs">The Fine Print</h2>
+                        <h3 className="text-4xl md:text-7xl font-black tracking-tighter text-secondary uppercase leading-none">
+                            Package Contents
+                        </h3>
+                        <div className="h-2 w-32 bg-primary rounded-full" />
                     </div>
 
-                    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">
-                        {/* ✅ Inclusions Section */}
-                        <div className="bg-white rounded-[2.5rem] p-12 shadow-xl border border-gray-100 group hover:border-emerald-100 transition-all">
-                            <div className="flex items-center gap-5 mb-10 text-emerald-500">
-                                <div className="w-16 h-16 bg-emerald-50 rounded-3xl flex items-center justify-center">
-                                    <CheckCircle2 size={32} />
+                    <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16">
+                        {/* ✅ INCLUSIONS CARD */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="bg-white rounded-[3rem] p-8 md:p-14 shadow-2xl shadow-emerald-900/5 border border-emerald-50 relative overflow-hidden group hover:border-emerald-200 transition-all"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform" />
+                            
+                            <div className="flex items-center gap-6 mb-12">
+                                <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-500 shadow-inner group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
+                                    <CheckCircle2 size={36} />
                                 </div>
                                 <div>
-                                    <h4 className="text-2xl font-black text-gray-900 uppercase tracking-tight">✅ Inclusions</h4>
-                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Everything guaranteed</p>
+                                    <h4 className="text-3xl font-black text-secondary uppercase tracking-tight">✅ Inclusions</h4>
+                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-1">Everything We Provide</p>
                                 </div>
                             </div>
-                            <ul className="grid grid-cols-1 gap-5">
-                                {trip.inclusions && trip.inclusions.length > 0 ? trip.inclusions.map((item, i) => item && (
-                                     <motion.li 
-                                         key={i} 
-                                         initial={{ opacity: 0, x: -10 }} 
-                                         whileInView={{ opacity: 1, x: 0 }}
-                                         transition={{ delay: i * 0.1 }}
-                                         className="flex items-start gap-4 p-4 bg-emerald-50/30 rounded-2xl border border-transparent hover:border-emerald-100 transition-all"
-                                     >
-                                         <CheckCircle2 size={20} className="text-emerald-500 mt-0.5 flex-shrink-0" />
-                                         <span className="text-sm font-bold text-gray-700 leading-relaxed">{item}</span>
-                                     </motion.li>
-                                 )) : (
-                                     <p className="text-sm font-bold text-gray-400 italic">No inclusions specified.</p>
-                                 )}
-                             </ul>
-                         </div>
 
-                         {/* ❌ Exclusions Section */}
-                         <div className="bg-white rounded-[2.5rem] p-12 shadow-xl border border-gray-100 group hover:border-red-100 transition-all">
-                             <div className="flex items-center gap-5 mb-10 text-red-500">
-                                 <div className="w-16 h-16 bg-red-50 rounded-3xl flex items-center justify-center">
-                                     <XCircle size={32} />
-                                 </div>
-                                 <div>
-                                     <h4 className="text-2xl font-black text-gray-900 uppercase tracking-tight">❌ Exclusions</h4>
-                                     <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">Not included in package</p>
-                                 </div>
-                             </div>
-                             <ul className="grid grid-cols-1 gap-5">
-                                 {trip.exclusions && trip.exclusions.length > 0 ? trip.exclusions.map((item, i) => item && (
-                                     <motion.li 
-                                         key={i} 
-                                         initial={{ opacity: 0, x: -10 }} 
-                                         whileInView={{ opacity: 1, x: 0 }}
-                                         transition={{ delay: i * 0.1 }}
-                                         className="flex items-start gap-4 p-4 bg-red-50/30 rounded-2xl border border-transparent hover:border-red-100 transition-all"
-                                     >
-                                         <XCircle size={20} className="text-red-400 mt-0.5 flex-shrink-0" />
-                                         <span className="text-sm font-bold text-gray-700 leading-relaxed">{item}</span>
-                                     </motion.li>
-                                 )) : (
-                                     <p className="text-sm font-bold text-gray-400 italic">No exclusions specified.</p>
-                                 )}
-                             </ul>
-                         </div>
+                            <ul className="grid grid-cols-1 gap-6">
+                                {trip.inclusions && trip.inclusions.length > 0 ? trip.inclusions.map((item, i) => (
+                                    <motion.li 
+                                        key={i}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="flex items-start gap-5 p-5 bg-emerald-50/20 rounded-2xl border border-emerald-50/50 hover:bg-emerald-50/40 hover:border-emerald-100 transition-all cursor-default"
+                                    >
+                                        <div className="mt-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-500/20">
+                                            <CheckCircle2 size={14} />
+                                        </div>
+                                        <span className="text-sm md:text-base font-bold text-gray-700 leading-relaxed uppercase tracking-tight italic">{item}</span>
+                                    </motion.li>
+                                )) : (
+                                    <div className="py-20 text-center flex flex-col items-center gap-4 border-2 border-dashed border-gray-100 rounded-3xl">
+                                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
+                                            <CheckCircle2 size={32} />
+                                        </div>
+                                        <p className="text-gray-400 font-black uppercase tracking-widest text-[10px]">No Inclusions Listed</p>
+                                    </div>
+                                )}
+                            </ul>
+                        </motion.div>
+
+                        {/* ❌ EXCLUSIONS CARD */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="bg-white rounded-[3rem] p-8 md:p-14 shadow-2xl shadow-red-900/5 border border-red-50 relative overflow-hidden group hover:border-red-200 transition-all"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform" />
+
+                            <div className="flex items-center gap-6 mb-12">
+                                <div className="w-20 h-20 bg-red-50 rounded-[2rem] flex items-center justify-center text-red-500 shadow-inner group-hover:bg-red-500 group-hover:text-white transition-all duration-500">
+                                    <XCircle size={36} />
+                                </div>
+                                <div>
+                                    <h4 className="text-3xl font-black text-secondary uppercase tracking-tight">❌ Exclusions</h4>
+                                    <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mt-1">Not Included In Package</p>
+                                </div>
+                            </div>
+
+                            <ul className="grid grid-cols-1 gap-6">
+                                {trip.exclusions && trip.exclusions.length > 0 ? trip.exclusions.map((item, i) => (
+                                    <motion.li 
+                                        key={i}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="flex items-start gap-5 p-5 bg-red-50/20 rounded-2xl border border-red-50/50 hover:bg-red-50/40 hover:border-red-100 transition-all cursor-default"
+                                    >
+                                        <div className="mt-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-red-500/20">
+                                            <XCircle size={14} />
+                                        </div>
+                                        <span className="text-sm md:text-base font-bold text-gray-700 leading-relaxed uppercase tracking-tight italic">{item}</span>
+                                    </motion.li>
+                                )) : (
+                                    <div className="py-20 text-center flex flex-col items-center gap-4 border-2 border-dashed border-gray-100 rounded-3xl">
+                                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
+                                            <XCircle size={32} />
+                                        </div>
+                                        <p className="text-gray-400 font-black uppercase tracking-widest text-[10px]">No Exclusions Listed</p>
+                                    </div>
+                                )}
+                            </ul>
+                        </motion.div>
                     </div>
                 </div>
+                
+                <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
             </section>
 
             {/* Itinerary Accordion would go here (omitted for brevity but follows a similar pattern to QuoteClient) */}
